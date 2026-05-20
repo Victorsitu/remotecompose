@@ -167,7 +167,7 @@
     {
       "type": "image",
       "id": "24",
-      "text": "https://picsum.photos/640/360",
+      "text": "https://fastly.picsum.photos/id/731/640/360.jpg?hmac=k2nSnMcEDDYivBt9YgaOTki1z50ookjj5mkT6fxkC_k",
       "width": 320,
       "height": 180,
       "cornerRadius": 12
