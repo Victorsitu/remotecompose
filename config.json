@@ -163,6 +163,14 @@
       "text": "Change anything from the browser. No app update needed.",
       "color": "#9CA3AF",
       "fontSize": 12
+    },
+    {
+      "type": "image",
+      "id": "24",
+      "text": "https://picsum.photos/640/360",
+      "width": 640,
+      "height": 360,
+      "cornerRadius": 0
     }
   ]
 }
