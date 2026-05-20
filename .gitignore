@@ -1,0 +1,10 @@
+.DS_Store
+.idea/
+.gradle/
+build/
+kotlin-js-store/
+_site/
+
+**/.gradle/
+**/build/
+**/kotlin-js-store/
