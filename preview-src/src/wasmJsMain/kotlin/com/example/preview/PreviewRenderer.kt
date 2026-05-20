@@ -24,7 +24,7 @@ import com.example.remotecompose.shared.parseColorLong
 private fun parseColor(hex: String): Color = Color(parseColorLong(hex))
 
 @Composable
-fun PreviewRenderer(config: LayoutConfig) {
+fun PreviewRenderer(config: LayoutConfig, verticalAlignments: Map<String, String> = emptyMap()) {
     val bgColor = parseColor(config.backgroundColor)
     val scrollState = rememberScrollState()
 
@@ -39,8 +39,28 @@ fun PreviewRenderer(config: LayoutConfig) {
         verticalArrangement = if (config.scrollable) Arrangement.Top else Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        config.elements.forEach { element ->
-            RenderElement(element)
+        if (config.scrollable) {
+            config.elements.forEach { element ->
+                RenderElement(element)
+            }
+        } else {
+            val top = config.elements.filter { verticalAlignments[it.id] == "top" }
+            val center = config.elements.filter {
+                verticalAlignments[it.id] == null || verticalAlignments[it.id] == "center"
+            }
+            val bottom = config.elements.filter { verticalAlignments[it.id] == "bottom" }
+
+            top.forEach { element ->
+                RenderElement(element)
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            center.forEach { element ->
+                RenderElement(element)
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            bottom.forEach { element ->
+                RenderElement(element)
+            }
         }
     }
 }

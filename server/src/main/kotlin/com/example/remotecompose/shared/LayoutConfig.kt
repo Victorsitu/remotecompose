@@ -27,5 +27,6 @@ data class ElementConfig(
     val paddingV: Int? = null,
     val actionName: String? = null,
     val align: String? = null,
+    val vAlign: String? = null,
     val children: List<ElementConfig>? = null,
 )

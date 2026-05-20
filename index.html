@@ -62,7 +62,7 @@
         .el-card.expanded .el-editor{max-height:none;overflow:visible;opacity:1;margin-top:10px;padding-top:10px;border-top:1px solid var(--outline)}
         .field{margin-bottom:10px}
         .field label{display:block;font-size:11px;font-weight:600;color:var(--ts);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-        .field input[type="text"],.field input[type="number"]{width:100%;padding:7px 10px;border:1.5px solid var(--outline);border-radius:8px;font-family:inherit;font-size:13px;color:var(--text);background:var(--surface)}
+        .field input[type="text"],.field input[type="number"],.field select{width:100%;padding:7px 10px;border:1.5px solid var(--outline);border-radius:8px;font-family:inherit;font-size:13px;color:var(--text);background:var(--surface)}
         .field input:focus{outline:none;border-color:var(--primary)}
         .fr{display:flex;gap:10px}.fr .field{flex:1}
         .cf{display:flex;align-items:center;gap:8px}
@@ -414,13 +414,18 @@ function render(){
     updatePreview()}
 
 function buildEditor(el,i){
-    if(el.type==='text')return `
+    const positionEditor=`<div class="field"><label>Position</label><select onchange="onFieldChange(${i},'vAlign',this.value)">
+        <option value="center" ${(el.vAlign||'center')==='center'?'selected':''}>Center</option>
+        <option value="top" ${el.vAlign==='top'?'selected':''}>Top</option>
+        <option value="bottom" ${el.vAlign==='bottom'?'selected':''}>Bottom</option>
+    </select></div>`;
+    if(el.type==='text')return positionEditor+`
         <div class="field"><label>Text</label><input type="text" value="${esc(el.text||'')}" oninput="onFieldChange(${i},'text',this.value)"></div>
         <div class="fr"><div class="field"><label>Size</label><input type="number" min="8" max="72" value="${el.fontSize||16}" oninput="onFieldChange(${i},'fontSize',this.value)"></div>
         <div class="field"><label>Color</label><div class="cf"><input type="color" value="${el.color||'#000000'}" oninput="onFieldChange(${i},'color',this.value)"><code>${(el.color||'#000000').toUpperCase()}</code></div></div></div>
         <div class="fr"><div class="field"><label>Pad H</label><input type="number" min="0" max="50" value="${el.paddingH||0}" oninput="onFieldChange(${i},'paddingH',this.value)"></div>
         <div class="field"><label>Pad V</label><input type="number" min="0" max="50" value="${el.paddingV||0}" oninput="onFieldChange(${i},'paddingV',this.value)"></div></div>`;
-    if(el.type==='button')return `
+    if(el.type==='button')return positionEditor+`
         <div class="field"><label>Label</label><input type="text" value="${esc(el.text||'')}" oninput="onFieldChange(${i},'text',this.value)"></div>
         <div class="field"><label>Action Name</label><input type="text" value="${esc(el.actionName||'')}" oninput="onFieldChange(${i},'actionName',this.value)" placeholder="e.g. open_settings"></div>
         <div class="fr"><div class="field"><label>Size</label><input type="number" min="8" max="72" value="${el.fontSize||16}" oninput="onFieldChange(${i},'fontSize',this.value)"></div>
@@ -429,17 +434,17 @@ function buildEditor(el,i){
         <div class="field"><label>Text</label><div class="cf"><input type="color" value="${el.textColor||'#FFFFFF'}" oninput="onFieldChange(${i},'textColor',this.value)"><code>${(el.textColor||'#FFFFFF').toUpperCase()}</code></div></div>
         <div class="field"><label>Border</label><div class="cf"><input type="color" value="${el.borderColor||'#000000'}" oninput="onFieldChange(${i},'borderColor',this.value)"><code>${(el.borderColor||'').toUpperCase()||'none'}</code></div></div></div>
         <div class="fr"><div class="field"><label>Border W</label><input type="number" min="0" max="10" value="${el.borderWidth||0}" oninput="onFieldChange(${i},'borderWidth',this.value)"></div></div>`;
-    if(el.type==='spacer')return `<div class="field"><label>Height (dp)</label><input type="number" min="1" max="200" value="${el.height||16}" oninput="onFieldChange(${i},'height',this.value)"></div>`;
-    if(el.type==='divider')return `<div class="fr"><div class="field"><label>Height</label><input type="number" min="1" max="10" value="${el.height||1}" oninput="onFieldChange(${i},'height',this.value)"></div><div class="field"><label>Color</label><div class="cf"><input type="color" value="${el.color||'#CCCCCC'}" oninput="onFieldChange(${i},'color',this.value)"><code>${(el.color||'#CCCCCC').toUpperCase()}</code></div></div></div>`;
-    if(el.type==='card')return `
+    if(el.type==='spacer')return positionEditor+`<div class="field"><label>Height (dp)</label><input type="number" min="1" max="200" value="${el.height||16}" oninput="onFieldChange(${i},'height',this.value)"></div>`;
+    if(el.type==='divider')return positionEditor+`<div class="fr"><div class="field"><label>Height</label><input type="number" min="1" max="10" value="${el.height||1}" oninput="onFieldChange(${i},'height',this.value)"></div><div class="field"><label>Color</label><div class="cf"><input type="color" value="${el.color||'#CCCCCC'}" oninput="onFieldChange(${i},'color',this.value)"><code>${(el.color||'#CCCCCC').toUpperCase()}</code></div></div></div>`;
+    if(el.type==='card')return positionEditor+`
         <div class="fr"><div class="field"><label>BG Color</label><div class="cf"><input type="color" value="${el.color||'#FFFFFF'}" oninput="onFieldChange(${i},'color',this.value)"><code>${(el.color||'#FFFFFF').toUpperCase()}</code></div></div>
         <div class="field"><label>Radius</label><input type="number" min="0" max="50" value="${el.cornerRadius||16}" oninput="onFieldChange(${i},'cornerRadius',this.value)"></div></div>
         <div class="fr"><div class="field"><label>Border</label><div class="cf"><input type="color" value="${el.borderColor||'#CCCCCC'}" oninput="onFieldChange(${i},'borderColor',this.value)"><code>${(el.borderColor||'').toUpperCase()||'none'}</code></div></div>
         <div class="field"><label>Border W</label><input type="number" min="0" max="10" value="${el.borderWidth||0}" oninput="onFieldChange(${i},'borderWidth',this.value)"></div></div>
         <div class="field"><label>Action (optional)</label><input type="text" value="${esc(el.actionName||'')}" oninput="onFieldChange(${i},'actionName',this.value)" placeholder="Makes card clickable"></div>
         ${childrenEditor(el,i,'text')}`;
-    if(el.type==='row')return childrenEditor(el,i,'button');
-    if(el.type==='icon')return `
+    if(el.type==='row')return positionEditor+childrenEditor(el,i,'button');
+    if(el.type==='icon')return positionEditor+`
         <div class="field"><label>Icon Name</label><input type="text" value="${esc(el.text||'')}" oninput="onFieldChange(${i},'text',this.value)" placeholder="content_copy, more_vert"></div>
         <div class="fr"><div class="field"><label>Size</label><input type="number" min="12" max="48" value="${el.fontSize||24}" oninput="onFieldChange(${i},'fontSize',this.value)"></div>
         <div class="field"><label>Color</label><div class="cf"><input type="color" value="${el.color||'#333333'}" oninput="onFieldChange(${i},'color',this.value)"><code>${(el.color||'#333333').toUpperCase()}</code></div></div></div>
@@ -543,6 +548,7 @@ function getConfig(){const s=screens[activeScreen];const cfg={backgroundColor:do
 function cleanEl(el){
     const o={type:el.type,id:el.id};
     if(el.align)o.align=el.align;
+    if(el.vAlign&&el.vAlign!=='center')o.vAlign=el.vAlign;
     if(el.paddingH!=null)o.paddingH=el.paddingH;
     if(el.paddingV!=null)o.paddingV=el.paddingV;
     if(el.type==='text'){o.text=el.text;o.color=(el.color||'#000000').toUpperCase();o.fontSize=el.fontSize||16}

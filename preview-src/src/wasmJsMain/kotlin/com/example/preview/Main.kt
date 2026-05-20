@@ -11,6 +11,11 @@ import androidx.compose.ui.window.ComposeViewport
 import kotlinx.browser.document
 import com.example.remotecompose.shared.LayoutConfig
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 private val json = Json { ignoreUnknownKeys = true }
 
@@ -22,6 +27,7 @@ external interface MessageEventData : JsAny {
 external fun getMessageData(event: JsAny): String
 
 var globalConfig: LayoutConfig = LayoutConfig()
+var globalVerticalAlignments: Map<String, String> = emptyMap()
 var configVersion: Int = 0
 
 @JsFun("(callback) => { window.addEventListener('message', (e) => { callback(e); }); }")
@@ -35,6 +41,7 @@ fun main() {
         try {
             val str = getMessageData(event)
             if (str.startsWith("{")) {
+                globalVerticalAlignments = extractVerticalAlignments(str)
                 globalConfig = json.decodeFromString<LayoutConfig>(str)
                 configVersion++
             }
@@ -57,7 +64,32 @@ fun main() {
         }
 
         Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
-            PreviewRenderer(config)
+            PreviewRenderer(config, globalVerticalAlignments)
         }
     }
 }
+
+private fun extractVerticalAlignments(rawJson: String): Map<String, String> {
+    val root = runCatching { json.parseToJsonElement(rawJson).jsonObject }.getOrNull() ?: return emptyMap()
+    val result = mutableMapOf<String, String>()
+
+    fun visit(element: JsonObject) {
+        val id = (element["id"] as? JsonPrimitive)?.contentOrNull()
+        val vAlign = (element["vAlign"] as? JsonPrimitive)?.contentOrNull()
+        if (!id.isNullOrBlank() && !vAlign.isNullOrBlank()) {
+            result[id] = vAlign
+        }
+        (element["children"] as? JsonArray)?.forEach { child ->
+            (child as? JsonObject)?.let(::visit)
+        }
+    }
+
+    (root["elements"] as? JsonArray)?.forEach { element ->
+        (element as? JsonObject)?.let(::visit)
+    }
+
+    return result
+}
+
+private fun JsonPrimitive.contentOrNull(): String? =
+    runCatching { jsonPrimitive.content }.getOrNull()

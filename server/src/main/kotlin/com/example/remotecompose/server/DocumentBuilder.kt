@@ -55,13 +55,41 @@ fun buildDocument(config: LayoutConfig): ByteArray {
 
     writer.root {
         writer.column(rootMod, ColumnLayout.CENTER, arrangement) {
-            for (element in config.elements) {
-                renderElement(writer, element, insideRow = false)
-            }
+            renderRootElements(writer, config)
         }
     }
 
     return writer.encodeToByteArray()
+}
+
+private fun renderRootElements(writer: RemoteComposeWriter, config: LayoutConfig) {
+    if (config.scrollable) {
+        config.elements.forEach { element ->
+            renderElement(writer, element, insideRow = false)
+        }
+        return
+    }
+
+    val top = config.elements.filter { it.vAlign == "top" }
+    val center = config.elements.filter { it.vAlign == null || it.vAlign == "center" }
+    val bottom = config.elements.filter { it.vAlign == "bottom" }
+
+    top.forEach { element ->
+        renderElement(writer, element, insideRow = false)
+    }
+    renderWeightedSpacer(writer)
+    center.forEach { element ->
+        renderElement(writer, element, insideRow = false)
+    }
+    renderWeightedSpacer(writer)
+    bottom.forEach { element ->
+        renderElement(writer, element, insideRow = false)
+    }
+}
+
+private fun renderWeightedSpacer(writer: RemoteComposeWriter) {
+    writer.startBox(RecordingModifier().fillMaxWidth().verticalWeight(1f))
+    writer.endBox()
 }
 
 private fun renderElement(writer: RemoteComposeWriter, el: ElementConfig, insideRow: Boolean) {
