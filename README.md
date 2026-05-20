@@ -4,6 +4,8 @@ A showcase of [AndroidX Remote Compose](https://developer.android.com/jetpack/an
 
 **Live editor:** [Web Editor](https://armcha.github.io/remotecompose/)
 
+Test Deploy
+
 https://github.com/user-attachments/assets/e6ac7586-1d85-4c68-a751-ca8ffb71a59f
 
 ## Architecture
