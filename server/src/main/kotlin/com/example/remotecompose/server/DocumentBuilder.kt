@@ -27,6 +27,7 @@ private fun sp(value: Int): Float = value * density()
 
 private val platform = JvmRcPlatformServices()
 
+
 fun buildDocument(config: LayoutConfig): ByteArray {
     val width = (400 * density()).toInt()
     val height = (800 * density()).toInt()
