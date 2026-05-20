@@ -35,7 +35,7 @@ jobs:
 
       - name: Build Web Target
         # Ejecuta la compilación de Compose HTML/JS usando la estructura del proyecto
-        run: ./gradlew :liveeditor:jsBrowserDistribution
+        run: ./gradlew :liveeditor:wasmJsBrowserDistribution
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
