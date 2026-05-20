@@ -1,6 +1,7 @@
 package com.example.remotecompose.server
 
 import androidx.compose.remote.core.operations.Header
+import androidx.compose.remote.core.operations.BitmapData
 import androidx.compose.remote.core.operations.layout.managers.BoxLayout
 import androidx.compose.remote.core.operations.layout.managers.ColumnLayout
 import androidx.compose.remote.core.operations.layout.managers.CoreText
@@ -14,6 +15,8 @@ import androidx.compose.remote.creation.modifiers.RoundedRectShape
 import com.example.remotecompose.shared.ElementConfig
 import com.example.remotecompose.shared.LayoutConfig
 import com.example.remotecompose.shared.parseColorLong
+import java.net.URI
+import javax.imageio.ImageIO
 
 private const val ACTION_BUTTON_CLICKED = 1001
 
@@ -174,7 +177,7 @@ private fun renderImage(writer: RemoteComposeWriter, el: ElementConfig, fillWidt
         return
     }
 
-    val imageId = writer.addBitmapUrl(source)
+    val imageId = loadRemoteBitmap(writer, source)
     val radius = el.cornerRadius ?: 0
     val mod = RecordingModifier()
 
@@ -191,6 +194,28 @@ private fun renderImage(writer: RemoteComposeWriter, el: ElementConfig, fillWidt
     }
 
     writer.image(mod, imageId, RemoteComposeWriter.IMAGE_SCALE_CROP, 1f)
+}
+
+private fun loadRemoteBitmap(writer: RemoteComposeWriter, source: String): Int {
+    val image = runCatching {
+        URI(source).toURL().openStream().use { ImageIO.read(it) }
+    }.getOrNull()
+
+    if (image != null) {
+        return writer.addBitmap(image)
+    }
+
+    val imageId = writer.nextId()
+    BitmapData.apply(
+        writer.buffer.buffer,
+        imageId,
+        BitmapData.TYPE_PNG,
+        1,
+        BitmapData.ENCODING_URL,
+        1,
+        source.toByteArray(Charsets.UTF_8)
+    )
+    return imageId
 }
 
 private fun renderCard(writer: RemoteComposeWriter, el: ElementConfig) {
