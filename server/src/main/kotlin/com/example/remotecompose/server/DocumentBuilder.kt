@@ -99,6 +99,7 @@ private fun renderElement(writer: RemoteComposeWriter, el: ElementConfig, inside
         "spacer" -> renderSpacer(writer, el)
         "hspacer" -> renderHSpacer(writer, el)
         "divider" -> renderDivider(writer, el)
+        "image" -> renderImage(writer, el, fillWidth = !insideRow)
         "card" -> renderCard(writer, el)
         "row" -> renderRow(writer, el)
     }
@@ -165,6 +166,31 @@ private fun renderDivider(writer: RemoteComposeWriter, el: ElementConfig) {
         .padding(0f, dp(8), 0f, dp(8))
     writer.startBox(mod)
     writer.endBox()
+}
+
+private fun renderImage(writer: RemoteComposeWriter, el: ElementConfig, fillWidth: Boolean) {
+    val source = el.src ?: el.text
+    if (source.isNullOrBlank()) {
+        return
+    }
+
+    val imageId = writer.addBitmapUrl(source)
+    val radius = el.cornerRadius ?: 0
+    val mod = RecordingModifier()
+
+    if (fillWidth) {
+        mod.fillMaxWidth()
+    } else {
+        mod.width(dp(el.width ?: 160))
+    }
+
+    mod.height(dp(el.height ?: 180))
+
+    if (radius > 0) {
+        mod.clip(RoundedRectShape(dp(radius), dp(radius), dp(radius), dp(radius)))
+    }
+
+    writer.image(mod, imageId, RemoteComposeWriter.IMAGE_SCALE_CROP, 1f)
 }
 
 private fun renderCard(writer: RemoteComposeWriter, el: ElementConfig) {
