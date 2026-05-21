@@ -5,11 +5,11 @@
       "type": "image",
       "id": "30",
       "vAlign": "top",
-      "paddingTop": 16,
+      "paddingTop": 0,
       "paddingBottom": 16,
       "text": "https://victorsitu.github.io/remotecompose/assets/images/logotipo.png",
       "width": 170,
-      "height": 70,
+      "height": 40,
       "cornerRadius": 0
     },
     {
@@ -72,9 +72,9 @@
       "placeholder": "Enter text",
       "color": "#FFFFFF",
       "textColor": "#111111",
-      "fontSize": 8,
+      "fontSize": 16,
       "cornerRadius": 12,
-      "borderColor": "#FEFFFF",
+      "borderColor": "#7D7D7E",
       "borderWidth": 0
     },
     {
