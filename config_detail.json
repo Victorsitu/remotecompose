@@ -30,20 +30,52 @@
           "text": "Ya puedes enviar y recibir dinero al instante.",
           "color": "#333333",
           "fontSize": 16
+        },
+        {
+          "type": "spacer",
+          "id": "55",
+          "height": 4
         }
       ]
     },
     {
-      "type": "button",
-      "id": "47",
+      "type": "column",
+      "id": "48",
       "vAlign": "bottom",
-      "text": "Button",
-      "color": "#6200EA",
-      "textColor": "#FFFFFF",
-      "fontSize": 16,
-      "cornerRadius": 24,
-      "width": 100,
-      "actionName": "btn_47"
+      "children": [
+        {
+          "type": "button",
+          "id": "51",
+          "paddingTop": 8,
+          "paddingBottom": 8,
+          "text": "Volver a Bizum",
+          "color": "#4FFFDC",
+          "textColor": "#000000",
+          "fontSize": 14,
+          "cornerRadius": 20,
+          "width": 176,
+          "height": 40
+        },
+        {
+          "type": "spacer",
+          "id": "53",
+          "height": 16
+        },
+        {
+          "type": "button",
+          "id": "52",
+          "text": "Ir a inicio",
+          "color": "#FFFFFF",
+          "textColor": "#0432FF",
+          "fontSize": 14,
+          "cornerRadius": 20
+        },
+        {
+          "type": "spacer",
+          "id": "54",
+          "height": 21
+        }
+      ]
     }
   ]
 }
