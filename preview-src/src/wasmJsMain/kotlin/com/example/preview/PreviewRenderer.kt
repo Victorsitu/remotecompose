@@ -112,6 +112,17 @@ external fun fetchImageBytes(
 
 @JsFun(
     """(url) => {
+        if (!url) return "";
+        if (/^(https?:|data:|blob:)/.test(url)) return url;
+        if (url.startsWith("assets/")) return new URL("../" + url, window.location.href).href;
+        if (url.startsWith("/assets/")) return new URL(".." + url, window.location.href).href;
+        return new URL(url, window.location.href).href;
+    }"""
+)
+external fun resolveImageUrl(url: String): String
+
+@JsFun(
+    """(url) => {
         const request = new XMLHttpRequest();
         request.open("GET", url, false);
         request.responseType = "arraybuffer";
@@ -308,7 +319,7 @@ private fun DividerElement(el: ElementConfig) {
 
 @Composable
 private fun ImageElement(el: ElementConfig, fillWidth: Boolean = true) {
-    val source = el.text
+    val source = el.text?.takeIf { it.isNotBlank() }?.let { resolveImageUrl(it) }
     var image by remember(source) { mutableStateOf<ImageBitmap?>(null) }
     var failed by remember(source) { mutableStateOf(false) }
 
@@ -339,7 +350,7 @@ private fun ImageElement(el: ElementConfig, fillWidth: Boolean = true) {
             bitmap = bitmap,
             contentDescription = null,
             modifier = modifier,
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Fit
         )
     } else {
         Box(

@@ -338,7 +338,7 @@ private fun renderImage(writer: RemoteComposeWriter, el: ElementConfig, fillWidt
         mod.padding(dp(pad.left), dp(pad.top), dp(pad.right), dp(pad.bottom))
     }
 
-    writer.image(mod, imageId, RemoteComposeWriter.IMAGE_SCALE_CROP, 1f)
+    writer.image(mod, imageId, RemoteComposeWriter.IMAGE_SCALE_FIT, 1f)
 }
 
 private fun loadRemoteBitmap(writer: RemoteComposeWriter, source: String): Int {
