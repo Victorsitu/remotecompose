@@ -2,6 +2,12 @@
   "backgroundColor": "#FFFFFF",
   "elements": [
     {
+      "type": "spacer",
+      "id": "73",
+      "vAlign": "top",
+      "height": 32
+    },
+    {
       "type": "column",
       "id": "57",
       "vAlign": "top",
@@ -20,6 +26,7 @@
           "id": "63",
           "align": "start",
           "paddingTop": 28,
+          "paddingRight": 32,
           "fontWeight": 700,
           "text": "Traer mi cuenta bizum a Imagin",
           "color": "#333333",
@@ -30,6 +37,7 @@
           "id": "64",
           "align": "start",
           "paddingTop": 8,
+          "paddingRight": 32,
           "text": "Hemos enviado un mensaje a tu móvil con un código para realizar la portabilidad",
           "color": "#333333",
           "fontSize": 14
@@ -39,6 +47,7 @@
           "id": "65",
           "align": "start",
           "paddingTop": 12,
+          "paddingRight": 64,
           "text": "Introduce el codigo que has recibido",
           "color": "#333333",
           "fontSize": 12
