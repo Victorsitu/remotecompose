@@ -9,7 +9,7 @@
       "paddingBottom": 16,
       "text": "https://victorsitu.github.io/remotecompose/assets/images/logotipo.png",
       "width": 170,
-      "height": 40,
+      "height": 60,
       "cornerRadius": 0
     },
     {
@@ -19,8 +19,8 @@
       "vAlign": "top",
       "paddingTop": 0,
       "text": "https://victorsitu.github.io/remotecompose/assets/images/bizum-logo.png",
-      "width": 70,
-      "height": 18,
+      "width": 80,
+      "height": 28,
       "cornerRadius": 0
     },
     {
@@ -45,6 +45,7 @@
       "vAlign": "top",
       "paddingH": 8,
       "paddingV": 0,
+      "paddingTop": 8,
       "paddingLeft": 0,
       "text": "Hemos enviado un mensaje a tu móvil con un código para realizar la portabilidad",
       "color": "#000000",
@@ -55,7 +56,7 @@
       "id": "27",
       "align": "start",
       "vAlign": "top",
-      "paddingTop": 20,
+      "paddingTop": 24,
       "text": "Introduce el codigo que has recibido",
       "color": "#000000",
       "fontSize": 12
@@ -67,6 +68,7 @@
       "vAlign": "top",
       "paddingH": 12,
       "paddingV": 10,
+      "paddingTop": 12,
       "paddingLeft": 0,
       "text": "",
       "placeholder": "Enter text",
@@ -90,7 +92,7 @@
       "cornerRadius": 24,
       "width": 148,
       "height": 46,
-      "actionName": "btn_33"
+      "actionName": "navigate:detail"
     }
   ]
 }
