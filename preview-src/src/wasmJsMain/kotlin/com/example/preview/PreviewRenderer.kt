@@ -214,6 +214,7 @@ private fun RenderElementContent(el: ElementConfig, fillWidth: Boolean) {
         "image" -> ImageElement(el, fillWidth = fillWidth)
         "card" -> CardElement(el)
         "row" -> RowElement(el)
+        "column" -> ColumnElement(el)
     }
 }
 
@@ -434,15 +435,39 @@ private fun CardElement(el: ElementConfig) {
 
 @Composable
 private fun RowElement(el: ElementConfig) {
+    val pad = paddingSides(el)
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .padding(start = pad.left.dp, top = pad.top.dp, end = pad.right.dp, bottom = pad.bottom.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
         el.children?.forEach { child ->
             RenderElementContent(child, fillWidth = false)
+        }
+    }
+}
+
+@Composable
+private fun ColumnElement(el: ElementConfig) {
+    val pad = paddingSides(el)
+    val alignment = when (el.align) {
+        "start" -> Alignment.Start
+        "end" -> Alignment.End
+        else -> Alignment.CenterHorizontally
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .padding(start = pad.left.dp, top = pad.top.dp, end = pad.right.dp, bottom = pad.bottom.dp),
+        horizontalAlignment = alignment
+    ) {
+        el.children?.forEach { child ->
+            RenderElement(child)
         }
     }
 }

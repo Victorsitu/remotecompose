@@ -198,6 +198,7 @@ private fun renderElement(writer: RemoteComposeWriter, el: ElementConfig, inside
         "image" -> renderImage(writer, el, fillWidth = !insideRow && el.align == null)
         "card" -> renderCard(writer, el)
         "row" -> renderRow(writer, el)
+        "column" -> renderColumn(writer, el)
     }
 
     if (!insideRow) {
@@ -260,6 +261,7 @@ private fun renderTextField(writer: RemoteComposeWriter, el: ElementConfig, fill
     val pad = paddingSides(el, defaultHorizontal = 12, defaultVertical = 10)
     val shape = RoundedRectShape(dp(radius), dp(radius), dp(radius), dp(radius))
     val textId = writer.addText(el.text?.takeIf { it.isNotBlank() } ?: el.placeholder ?: "")
+    val actionName = el.actionName?.takeIf { it.isNotBlank() } ?: el.id.ifEmpty { "textfield" }
 
     val mod = RecordingModifier()
     if (fillWidth) {
@@ -270,6 +272,7 @@ private fun renderTextField(writer: RemoteComposeWriter, el: ElementConfig, fill
     mod.clip(shape)
         .background(bgColor)
         .border(dp(borderW), dp(radius), borderColor, ShapeType.ROUNDED_RECTANGLE)
+        .onClick(HostAction(ACTION_BUTTON_CLICKED, writer.addText(actionName)))
         .padding(dp(pad.left), dp(pad.top), dp(pad.right), dp(pad.bottom))
 
     writer.startBox(mod, BoxLayout.START, BoxLayout.CENTER)
@@ -408,11 +411,36 @@ private fun renderCard(writer: RemoteComposeWriter, el: ElementConfig) {
 }
 
 private fun renderRow(writer: RemoteComposeWriter, el: ElementConfig) {
+    val pad = paddingSides(el)
     val mod = RecordingModifier()
         .fillMaxWidth()
         .padding(0f, dp(4), 0f, dp(4))
 
+    if (pad.left > 0 || pad.top > 0 || pad.right > 0 || pad.bottom > 0) {
+        mod.padding(dp(pad.left), dp(pad.top), dp(pad.right), dp(pad.bottom))
+    }
+
     writer.row(mod, RowLayout.SPACE_EVENLY, RowLayout.CENTER) {
         el.children?.forEach { child -> renderElement(writer, child, insideRow = true) }
+    }
+}
+
+private fun renderColumn(writer: RemoteComposeWriter, el: ElementConfig) {
+    val alignment = when (el.align) {
+        "start" -> ColumnLayout.START
+        "end" -> ColumnLayout.END
+        else -> ColumnLayout.CENTER
+    }
+    val pad = paddingSides(el)
+    val mod = RecordingModifier()
+        .fillMaxWidth()
+        .padding(0f, dp(4), 0f, dp(4))
+
+    if (pad.left > 0 || pad.top > 0 || pad.right > 0 || pad.bottom > 0) {
+        mod.padding(dp(pad.left), dp(pad.top), dp(pad.right), dp(pad.bottom))
+    }
+
+    writer.column(mod, alignment, ColumnLayout.TOP) {
+        el.children?.forEach { child -> renderElement(writer, child, insideRow = false) }
     }
 }
