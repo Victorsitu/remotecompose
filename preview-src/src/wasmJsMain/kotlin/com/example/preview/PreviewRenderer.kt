@@ -135,7 +135,9 @@ private fun loadByteArraySync(url: String): ByteArray {
 }
 
 private val robotoFontFamily: FontFamily by lazy {
-    FontFamily(Font("Roboto", getData = { loadByteArraySync("fonts/Roboto-Regular.ttf") }))
+    runCatching {
+        FontFamily(Font("Roboto", getData = { loadByteArraySync("fonts/Roboto-Regular.ttf") }))
+    }.getOrDefault(FontFamily.SansSerif)
 }
 
 @Composable

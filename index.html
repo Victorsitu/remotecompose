@@ -168,7 +168,7 @@
             <div class="panel" style="position:sticky;top:76px">
                 <div class="ph"><h2><span class="material-icons-round">phone_android</span>Live Preview</h2></div>
                 <div class="pb" style="display:flex;justify-content:center;padding:20px 12px">
-                    <div class="phone-frame"><div class="phone-camera"></div><iframe id="composePreview" src="preview/index.html" onload="onPreviewLoad()" style="width:100%;height:100%;border:none;background:white"></iframe></div>
+                    <div class="phone-frame"><div class="phone-camera"></div><iframe id="composePreview" src="preview/index.html?v=85" onload="onPreviewLoad()" style="width:100%;height:100%;border:none;background:white"></iframe></div>
                 </div>
             </div>
         </div>
@@ -258,7 +258,7 @@ const defaultsDetail=[
     {type:'text',text:'No app update required.',color:'#9CA3AF',fontSize:11}
 ];
 function init(){const t=localStorage.getItem('gh_token');if(t)document.getElementById('ghToken').value=t;updateVersionLabel();fetchScreen('home');fetchScreen('detail')}
-const BUILD_VERSION=84;
+const BUILD_VERSION=85;
 function updateVersionLabel(){document.getElementById('versionLabel').textContent='0.0.'+BUILD_VERSION+'-alpha'}
 async function fetchScreen(key){
     const s=screens[key];
