@@ -9,15 +9,19 @@
           "type": "image",
           "id": "37",
           "paddingBottom": 0,
+          "paddingLeft": 16,
+          "paddingRight": 16,
           "text": "https://victorsitu.github.io/remotecompose/assets/images/check-circle.png",
-          "width": 100,
-          "height": 100,
+          "width": 120,
+          "height": 120,
           "cornerRadius": 0
         },
         {
           "type": "text",
           "id": "38",
           "paddingTop": 30,
+          "paddingLeft": 16,
+          "paddingRight": 16,
           "fontWeight": 700,
           "text": "Portabilidad realizada correctamente",
           "color": "#333333",
@@ -27,6 +31,8 @@
           "type": "text",
           "id": "39",
           "paddingTop": 16,
+          "paddingLeft": 16,
+          "paddingRight": 16,
           "text": "Ya puedes enviar y recibir dinero al instante.",
           "color": "#333333",
           "fontSize": 16
@@ -48,13 +54,15 @@
           "id": "51",
           "paddingTop": 8,
           "paddingBottom": 8,
+          "paddingLeft": 16,
+          "paddingRight": 16,
           "text": "Volver a Bizum",
           "color": "#4FFFDC",
           "textColor": "#000000",
-          "fontSize": 14,
-          "cornerRadius": 20,
-          "width": 176,
-          "height": 40
+          "fontSize": 16,
+          "cornerRadius": 30,
+          "width": 208,
+          "height": 51
         },
         {
           "type": "spacer",
@@ -64,10 +72,12 @@
         {
           "type": "button",
           "id": "52",
+          "paddingLeft": 16,
+          "paddingRight": 16,
           "text": "Ir a inicio",
           "color": "#FFFFFF",
           "textColor": "#0432FF",
-          "fontSize": 14,
+          "fontSize": 17,
           "cornerRadius": 20
         },
         {
