@@ -42,6 +42,11 @@
           "text": "Introduce el codigo que has recibido",
           "color": "#333333",
           "fontSize": 12
+        },
+        {
+          "type": "spacer",
+          "id": "71",
+          "height": 32
         }
       ]
     },
@@ -52,7 +57,7 @@
       "vAlign": "top",
       "paddingH": 12,
       "paddingV": 10,
-      "paddingTop": 8,
+      "paddingTop": 0,
       "paddingLeft": 0,
       "text": "",
       "placeholder": "Enter text",
