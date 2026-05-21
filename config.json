@@ -16,8 +16,9 @@
           "type": "image",
           "id": "61",
           "align": "start",
+          "paddingLeft": 16,
           "text": "https://victorsitu.github.io/remotecompose/assets/images/bizum-logo.png",
-          "width": 80,
+          "width": 90,
           "height": 28,
           "cornerRadius": 8
         },
@@ -26,60 +27,61 @@
           "id": "63",
           "align": "start",
           "paddingTop": 28,
+          "paddingLeft": 16,
           "paddingRight": 32,
           "fontWeight": 700,
           "text": "Traer mi cuenta bizum a Imagin",
           "color": "#333333",
-          "fontSize": 20
+          "fontSize": 26
         },
         {
           "type": "text",
           "id": "64",
           "align": "start",
           "paddingTop": 8,
+          "paddingLeft": 16,
           "paddingRight": 32,
           "text": "Hemos enviado un mensaje a tu móvil con un código para realizar la portabilidad",
           "color": "#333333",
-          "fontSize": 14
+          "fontSize": 18
         },
         {
           "type": "text",
           "id": "65",
           "align": "start",
           "paddingTop": 12,
+          "paddingLeft": 16,
           "paddingRight": 64,
           "text": "Introduce el codigo que has recibido",
           "color": "#333333",
-          "fontSize": 12
+          "fontSize": 15
+        },
+        {
+          "type": "spacer",
+          "id": "74",
+          "height": 32
+        },
+        {
+          "type": "textfield",
+          "id": "75",
+          "align": "start",
+          "paddingH": 12,
+          "paddingV": 10,
+          "paddingTop": 0,
+          "paddingBottom": 0,
+          "paddingLeft": 16,
+          "paddingRight": 0,
+          "text": "",
+          "placeholder": "Enter text",
+          "color": "#FFFFFF",
+          "textColor": "#111111",
+          "fontSize": 18,
+          "cornerRadius": 12,
+          "borderColor": "#D0D0D0",
+          "borderWidth": 1,
+          "actionName": "input_75"
         }
       ]
-    },
-    {
-      "type": "spacer",
-      "id": "72",
-      "vAlign": "top",
-      "height": 32
-    },
-    {
-      "type": "textfield",
-      "id": "32",
-      "align": "start",
-      "vAlign": "top",
-      "paddingH": 12,
-      "paddingV": 10,
-      "paddingTop": 0,
-      "paddingBottom": 0,
-      "paddingLeft": 0,
-      "paddingRight": 0,
-      "text": "",
-      "placeholder": "Enter text",
-      "color": "#FFFFFF",
-      "textColor": "#111111",
-      "fontSize": 18,
-      "cornerRadius": 12,
-      "borderColor": "#7D7D7E",
-      "borderWidth": 1,
-      "actionName": "Textefield Click"
     },
     {
       "type": "column",
@@ -92,10 +94,10 @@
           "text": "Continuar",
           "color": "#00FEC5",
           "textColor": "#000000",
-          "fontSize": 16,
-          "cornerRadius": 20,
-          "width": 148,
-          "height": 46,
+          "fontSize": 19,
+          "cornerRadius": 38,
+          "width": 200,
+          "height": 56,
           "actionName": "navigate:detail"
         },
         {
