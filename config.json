@@ -2,67 +2,95 @@
   "backgroundColor": "#FFFFFF",
   "elements": [
     {
-      "type": "text",
-      "id": "1",
+      "type": "image",
+      "id": "30",
       "vAlign": "top",
-      "paddingH": 16,
-      "paddingV": 16,
-      "text": "ImaginBank",
-      "color": "#000000",
-      "fontSize": 20
+      "paddingTop": 16,
+      "paddingBottom": 16,
+      "text": "https://victorsitu.github.io/remotecompose/assets/images/logotipo.png",
+      "width": 170,
+      "height": 70,
+      "cornerRadius": 0
     },
     {
       "type": "image",
       "id": "24",
+      "align": "start",
       "vAlign": "top",
-      "text": "https://fastly.picsum.photos/id/731/640/360.jpg?hmac=k2nSnMcEDDYivBt9YgaOTki1z50ookjj5mkT6fxkC_k",
-      "width": 16,
-      "height": 16,
+      "paddingTop": 0,
+      "text": "https://victorsitu.github.io/remotecompose/assets/images/bizum-logo.png",
+      "width": 70,
+      "height": 18,
       "cornerRadius": 0
     },
     {
       "type": "text",
       "id": "25",
+      "align": "start",
       "vAlign": "top",
       "paddingH": 8,
       "paddingV": 8,
+      "paddingTop": 30,
+      "paddingBottom": 0,
+      "paddingLeft": 0,
+      "fontWeight": 700,
       "text": "Traer mi cuenta bizum a Imagin",
       "color": "#000000",
-      "fontSize": 17
+      "fontSize": 20
     },
     {
       "type": "text",
       "id": "26",
+      "align": "start",
       "vAlign": "top",
       "paddingH": 8,
       "paddingV": 0,
+      "paddingLeft": 0,
       "text": "Hemos enviado un mensaje a tu móvil con un código para realizar la portabilidad",
       "color": "#000000",
-      "fontSize": 14
+      "fontSize": 15
     },
     {
       "type": "text",
       "id": "27",
+      "align": "start",
       "vAlign": "top",
+      "paddingTop": 20,
       "text": "Introduce el codigo que has recibido",
-      "color": "#000000",
-      "fontSize": 10
-    },
-    {
-      "type": "text",
-      "id": "28",
-      "vAlign": "top",
-      "paddingH": 0,
-      "text": "2938930",
       "color": "#000000",
       "fontSize": 12
     },
     {
-      "type": "divider",
-      "id": "29",
+      "type": "textfield",
+      "id": "32",
+      "align": "start",
       "vAlign": "top",
-      "color": "#CCCCCC",
-      "height": 2
+      "paddingH": 12,
+      "paddingV": 10,
+      "paddingLeft": 0,
+      "text": "",
+      "placeholder": "Enter text",
+      "color": "#FFFFFF",
+      "textColor": "#111111",
+      "fontSize": 8,
+      "cornerRadius": 12,
+      "borderColor": "#FEFFFF",
+      "borderWidth": 0
+    },
+    {
+      "type": "button",
+      "id": "33",
+      "vAlign": "bottom",
+      "paddingTop": 13,
+      "paddingBottom": 16,
+      "text": "Continuar",
+      "color": "#00F79E",
+      "textColor": "#000000",
+      "fontSize": 16,
+      "cornerRadius": 24,
+      "width": 148,
+      "height": 46,
+      "actionName": "btn_33"
     }
   ]
 }
