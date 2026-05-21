@@ -50,7 +50,7 @@
         .el-top{display:flex;align-items:center;gap:8px}
         .badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 8px;border-radius:6px}
         .badge.text{background:#e8eaf6;color:#283593}.badge.button{background:#fce4ec;color:#c62828}.badge.spacer{background:#e0f2f1;color:#00695c}
-        .badge.divider{background:#fff3e0;color:#e65100}.badge.card{background:#e3f2fd;color:#1565c0}.badge.row{background:#f3e5f5;color:#7b1fa2}.badge.icon{background:#fce4ec;color:#880e4f}.badge.image{background:#e8f5e9;color:#2e7d32}
+        .badge.divider{background:#fff3e0;color:#e65100}.badge.card{background:#e3f2fd;color:#1565c0}.badge.row{background:#f3e5f5;color:#7b1fa2}.badge.icon{background:#fce4ec;color:#880e4f}.badge.image{background:#e8f5e9;color:#2e7d32}.badge.textfield{background:#e0f7fa;color:#006064}
         .el-summary{font-size:13px;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .el-actions{display:flex;align-items:center;padding:0 6px;gap:2px}
         .el-actions button{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;color:var(--ts);display:flex;align-items:center}
@@ -156,6 +156,7 @@
                 <button class="btn btn-o btn-s" onclick="addElement('card')"><span class="material-icons-round">crop_square</span>Card</button>
                 <button class="btn btn-o btn-s" onclick="addElement('row')"><span class="material-icons-round">view_column</span>Row</button>
                 <button class="btn btn-o btn-s" onclick="addElement('image')"><span class="material-icons-round">image</span>Image</button>
+                <button class="btn btn-o btn-s" onclick="addElement('textfield')"><span class="material-icons-round">edit_note</span>Field</button>
             </div>
             <div class="pb" id="elementList"></div>
             <div class="bg-sec">
@@ -313,6 +314,81 @@ function switchScreen(key){if(key===activeScreen)return;screens[activeScreen].el
 function assignIds(e){e={...e,id:e.id||uid()};if(e.children)e.children=e.children.map(c=>assignIds({...c}));return e}
 function maxId(els){let m=0;els.forEach(e=>{m=Math.max(m,parseInt(e.id)||0);if(e.children)m=Math.max(m,maxId(e.children))});return m}
 function resetToDefaults(){nextId=1;loadScreenDefs('home');loadScreenDefs('detail');loadScreenDefs('estimates');loadScreenDefs('estimate_detail');activateScreen();showToast('Reset to defaults','restart_alt')}
+const NUMERIC_FIELDS=new Set(['fontSize','fontWeight','height','width','cornerRadius','borderWidth','paddingH','paddingV','paddingTop','paddingBottom','paddingLeft','paddingRight'])
+const BOOLEAN_FIELDS=new Set(['italic','underline'])
+const LOCAL_IMAGES=['assets/images/check-circle.png','assets/images/bizum-logo.png']
+function assetBasePath(){
+    const githubPagesSuffix='.github.io';
+    const parts=location.pathname.split('/').filter(Boolean);
+    if(location.hostname.endsWith(githubPagesSuffix)&&parts[0])return '/'+parts[0]+'/';
+    return '/';
+}
+function localAssetUrl(path){return location.origin+assetBasePath()+path}
+function paddingValue(el,side){
+    const key='padding'+side.charAt(0).toUpperCase()+side.slice(1);
+    if(el[key]!=null)return el[key];
+    const h=el.paddingH!=null?el.paddingH:0;
+    const v=el.paddingV!=null?el.paddingV:0;
+    return side==='left'||side==='right'?h:v;
+}
+function layoutEditor(el,change,includeVertical=true){
+    const vertical=includeVertical?`<div class="field"><label>Vertical</label><select onchange="${change('vAlign')}">
+            <option value="center" ${(el.vAlign||'center')==='center'?'selected':''}>Center</option>
+            <option value="top" ${el.vAlign==='top'?'selected':''}>Top</option>
+            <option value="bottom" ${el.vAlign==='bottom'?'selected':''}>Bottom</option>
+        </select></div>`:'';
+    return `<div class="fr">${vertical}
+        <div class="field"><label>Horizontal</label><select onchange="${change('align')}">
+            <option value="center" ${(el.align||'center')==='center'?'selected':''}>Center</option>
+            <option value="start" ${el.align==='start'?'selected':''}>Left</option>
+            <option value="end" ${el.align==='end'?'selected':''}>Right</option>
+        </select></div>
+    </div>`;
+}
+function paddingEditor(el,change){
+    return `<div class="fr">
+        <div class="field"><label>Pad Top</label><input type="number" min="0" max="100" value="${paddingValue(el,'top')}" oninput="${change('paddingTop')}"></div>
+        <div class="field"><label>Pad Bottom</label><input type="number" min="0" max="100" value="${paddingValue(el,'bottom')}" oninput="${change('paddingBottom')}"></div>
+    </div>
+    <div class="fr">
+        <div class="field"><label>Pad Left</label><input type="number" min="0" max="100" value="${paddingValue(el,'left')}" oninput="${change('paddingLeft')}"></div>
+        <div class="field"><label>Pad Right</label><input type="number" min="0" max="100" value="${paddingValue(el,'right')}" oninput="${change('paddingRight')}"></div>
+    </div>`;
+}
+function textStyleEditor(el,change){
+    return `<div class="fr">
+        <div class="field"><label>Font</label><select onchange="${change('fontFamily')}">
+            <option value="" ${!el.fontFamily?'selected':''}>Default</option>
+            <option value="Roboto" ${el.fontFamily==='Roboto'?'selected':''}>Roboto</option>
+            <option value="sans-serif" ${(el.fontFamily==='sans-serif'||el.fontFamily==='sans')?'selected':''}>Sans</option>
+            <option value="serif" ${el.fontFamily==='serif'?'selected':''}>Serif</option>
+            <option value="monospace" ${el.fontFamily==='monospace'?'selected':''}>Monospace</option>
+            <option value="cursive" ${el.fontFamily==='cursive'?'selected':''}>Cursive</option>
+        </select></div>
+        <div class="field"><label>Weight</label><select onchange="${change('fontWeight')}">
+            <option value="400" ${(el.fontWeight||400)===400?'selected':''}>Normal</option>
+            <option value="500" ${el.fontWeight===500?'selected':''}>Medium</option>
+            <option value="600" ${el.fontWeight===600?'selected':''}>SemiBold</option>
+            <option value="700" ${el.fontWeight===700?'selected':''}>Bold</option>
+        </select></div>
+    </div>
+    <div class="fr">
+        <div class="field"><label>Italic</label><select onchange="${change('italic')}">
+            <option value="false" ${!el.italic?'selected':''}>No</option>
+            <option value="true" ${el.italic?'selected':''}>Yes</option>
+        </select></div>
+        <div class="field"><label>Underline</label><select onchange="${change('underline')}">
+            <option value="false" ${!el.underline?'selected':''}>No</option>
+            <option value="true" ${el.underline?'selected':''}>Yes</option>
+        </select></div>
+    </div>`;
+}
+function localImagePicker(change){
+    return `<div class="field"><label>Local Images</label><select onchange="if(this.value){const src=localAssetUrl(this.value);${change('text').replace('this.value','src')}};this.value=''">
+        <option value="">Choose asset...</option>
+        ${LOCAL_IMAGES.map(src=>`<option value="${src}">${src}</option>`).join('')}
+    </select></div>`;
+}
 function addElement(type){const el={type,id:uid()};
     if(type==='text'){el.text='New text';el.color='#000000';el.fontSize=16}
     else if(type==='button'){el.text='Button';el.color='#6200EA';el.textColor='#FFFFFF';el.fontSize=16;el.cornerRadius=24;el.actionName='btn_'+el.id}
@@ -321,32 +397,47 @@ function addElement(type){const el={type,id:uid()};
     else if(type==='card'){el.color='#FFFFFF';el.cornerRadius=16;el.paddingH=16;el.paddingV=16;el.children=[{type:'text',id:uid(),text:'Card content',color:'#333333',fontSize:14}]}
     else if(type==='row'){el.children=[{type:'button',id:uid(),text:'Left',color:'#6200EA',textColor:'#FFFFFF',fontSize:14,cornerRadius:20},{type:'button',id:uid(),text:'Right',color:'#00897B',textColor:'#FFFFFF',fontSize:14,cornerRadius:20}]}
     else if(type==='image'){el.text='https://picsum.photos/640/360';el.width=320;el.height=180;el.cornerRadius=12}
+    else if(type==='textfield'){el.text='';el.placeholder='Enter text';el.color='#FFFFFF';el.textColor='#111111';el.fontSize=14;el.cornerRadius=12;el.borderColor='#D0D0D0';el.borderWidth=1;el.paddingH=12;el.paddingV=10}
     elements.push(el);render()}
 function removeElement(idx){if(expandedIdx===idx)expandedIdx=-1;else if(expandedIdx>idx)expandedIdx--;elements.splice(idx,1);render()}
 function toggleExpand(idx){expandedIdx=expandedIdx===idx?-1:idx;const cards=document.querySelectorAll('.el-card');cards.forEach((c,i)=>{if(i===expandedIdx)c.classList.add('expanded');else c.classList.remove('expanded')})}
-function onFieldChange(idx,field,value){if(field==='fontSize'||field==='height'||field==='width'||field==='cornerRadius'||field==='borderWidth'||field==='paddingH'||field==='paddingV')value=parseInt(value)||0;elements[idx][field]=value;updatePreview()}
-function onChildField(parentIdx,childIdx,field,value){if(field==='fontSize'||field==='cornerRadius'||field==='height'||field==='width'||field==='borderWidth'||field==='paddingH'||field==='paddingV')value=parseInt(value)||0;elements[parentIdx].children[childIdx][field]=value;updatePreview()}
-function onGrandchildField(parentIdx,childIdx,gcIdx,field,value){if(field==='fontSize'||field==='cornerRadius'||field==='height'||field==='width'||field==='borderWidth'||field==='paddingH'||field==='paddingV')value=parseInt(value)||0;elements[parentIdx].children[childIdx].children[gcIdx][field]=value;updatePreview()}
+function normalizeFieldValue(field,value){if(NUMERIC_FIELDS.has(field))return parseInt(value)||0;if(BOOLEAN_FIELDS.has(field))return value===true||value==='true';return value}
+function onFieldChange(idx,field,value){elements[idx][field]=normalizeFieldValue(field,value);updatePreview()}
+function onChildField(parentIdx,childIdx,field,value){elements[parentIdx].children[childIdx][field]=normalizeFieldValue(field,value);updatePreview()}
+function onGrandchildField(parentIdx,childIdx,gcIdx,field,value){elements[parentIdx].children[childIdx].children[gcIdx][field]=normalizeFieldValue(field,value);updatePreview()}
 function removeGrandchild(pi,ci,gi){const removed=elements[pi].children[ci].children[gi];if(removed&&expandedGcId===removed.id)expandedGcId=null;elements[pi].children[ci].children.splice(gi,1);render()}
 function toggleGcExpand(pi,ci,gi){const gc=elements[pi]?.children?.[ci]?.children?.[gi];if(!gc)return;const domId='gc-'+gc.id;const el=document.getElementById(domId);if(!el)return;const was=el.classList.contains('child-expanded');document.querySelectorAll('.child-item .child-item').forEach(c=>c.classList.remove('child-expanded'));if(!was){el.classList.add('child-expanded');expandedGcId=gc.id}else{expandedGcId=null}}
 function buildGcEditor(gc,i,ci,gi){
-    const f=(field,val)=>`onGrandchildField(${i},${ci},${gi},'${field}',this.value)`;
-    let html='';
+    const f=field=>`onGrandchildField(${i},${ci},${gi},'${field}',this.value)`;
+    let html=layoutEditor(gc,f,false);
     if(gc.type==='text'){
         html+=`<div class="field"><label>Text</label><input type="text" value="${esc(gc.text||'')}" oninput="${f('text')}"></div>
         <div class="fr"><div class="field"><label>Size</label><input type="number" min="8" max="72" value="${gc.fontSize||14}" oninput="${f('fontSize')}"></div>
         <div class="field"><label>Color</label><div class="cf"><input type="color" value="${gc.color||'#000000'}" oninput="${f('color')}"><code>${(gc.color||'#000000').toUpperCase()}</code></div></div></div>
-        <div class="fr"><div class="field"><label>Pad H</label><input type="number" min="0" max="50" value="${gc.paddingH||0}" oninput="${f('paddingH')}"></div>
-        <div class="field"><label>Pad V</label><input type="number" min="0" max="50" value="${gc.paddingV||0}" oninput="${f('paddingV')}"></div></div>`;
+        ${textStyleEditor(gc,f)}
+        ${paddingEditor(gc,f)}`;
     } else if(gc.type==='button'){
         html+=`<div class="field"><label>Label</label><input type="text" value="${esc(gc.text||'')}" oninput="${f('text')}"></div>
         <div class="field"><label>Action</label><input type="text" value="${esc(gc.actionName||'')}" oninput="${f('actionName')}" placeholder="e.g. navigate:detail"></div>
         <div class="fr"><div class="field"><label>Size</label><input type="number" min="8" max="72" value="${gc.fontSize||14}" oninput="${f('fontSize')}"></div>
         <div class="field"><label>Radius</label><input type="number" min="0" max="50" value="${gc.cornerRadius||20}" oninput="${f('cornerRadius')}"></div></div>
+        <div class="fr"><div class="field"><label>Width</label><input type="number" min="0" max="600" value="${gc.width||0}" oninput="${f('width')}"></div>
+        <div class="field"><label>Height</label><input type="number" min="0" max="200" value="${gc.height||0}" oninput="${f('height')}"></div></div>
         <div class="fr"><div class="field"><label>BG</label><div class="cf"><input type="color" value="${gc.color||'#6200EA'}" oninput="${f('color')}"><code>${(gc.color||'#6200EA').toUpperCase()}</code></div></div>
         <div class="field"><label>Text</label><div class="cf"><input type="color" value="${gc.textColor||'#FFFFFF'}" oninput="${f('textColor')}"><code>${(gc.textColor||'#FFFFFF').toUpperCase()}</code></div></div></div>
         <div class="fr"><div class="field"><label>Border</label><div class="cf"><input type="color" value="${gc.borderColor||'#000000'}" oninput="${f('borderColor')}"><code>${(gc.borderColor||'').toUpperCase()||'none'}</code></div></div>
-        <div class="field"><label>Border W</label><input type="number" min="0" max="10" value="${gc.borderWidth||0}" oninput="${f('borderWidth')}"></div></div>`;
+        <div class="field"><label>Border W</label><input type="number" min="0" max="10" value="${gc.borderWidth||0}" oninput="${f('borderWidth')}"></div></div>
+        ${paddingEditor(gc,f)}`;
+    } else if(gc.type==='textfield'){
+        html+=`<div class="field"><label>Value</label><input type="text" value="${esc(gc.text||'')}" oninput="${f('text')}"></div>
+        <div class="field"><label>Placeholder</label><input type="text" value="${esc(gc.placeholder||'')}" oninput="${f('placeholder')}" placeholder="Enter text"></div>
+        <div class="fr"><div class="field"><label>Size</label><input type="number" min="8" max="72" value="${gc.fontSize||14}" oninput="${f('fontSize')}"></div>
+        <div class="field"><label>Radius</label><input type="number" min="0" max="50" value="${gc.cornerRadius||12}" oninput="${f('cornerRadius')}"></div></div>
+        <div class="fr"><div class="field"><label>BG</label><div class="cf"><input type="color" value="${gc.color||'#FFFFFF'}" oninput="${f('color')}"><code>${(gc.color||'#FFFFFF').toUpperCase()}</code></div></div>
+        <div class="field"><label>Text</label><div class="cf"><input type="color" value="${gc.textColor||'#111111'}" oninput="${f('textColor')}"><code>${(gc.textColor||'#111111').toUpperCase()}</code></div></div></div>
+        <div class="fr"><div class="field"><label>Border</label><div class="cf"><input type="color" value="${gc.borderColor||'#D0D0D0'}" oninput="${f('borderColor')}"><code>${(gc.borderColor||'#D0D0D0').toUpperCase()}</code></div></div>
+        <div class="field"><label>Border W</label><input type="number" min="0" max="10" value="${gc.borderWidth||1}" oninput="${f('borderWidth')}"></div></div>
+        ${paddingEditor(gc,f)}`;
     } else if(gc.type==='spacer'){
         html+=`<div class="field"><label>Height (dp)</label><input type="number" min="1" max="200" value="${gc.height||16}" oninput="${f('height')}"></div>`;
     } else if(gc.type==='hspacer'){
@@ -356,14 +447,15 @@ function buildGcEditor(gc,i,ci,gi){
         <div class="field"><label>Color</label><div class="cf"><input type="color" value="${gc.color||'#CCCCCC'}" oninput="${f('color')}"><code>${(gc.color||'#CCCCCC').toUpperCase()}</code></div></div></div>`;
     } else if(gc.type==='image'){
         html+=`<div class="field"><label>Image URL</label><input type="text" value="${esc(gc.text||'')}" oninput="${f('text')}" placeholder="https://..."></div>
+        ${localImagePicker(f)}
         <div class="fr"><div class="field"><label>Width</label><input type="number" min="24" max="600" value="${gc.width||320}" oninput="${f('width')}"></div>
         <div class="field"><label>Height</label><input type="number" min="24" max="600" value="${gc.height||180}" oninput="${f('height')}"></div>
-        <div class="field"><label>Radius</label><input type="number" min="0" max="80" value="${gc.cornerRadius||0}" oninput="${f('cornerRadius')}"></div></div>`;
+        <div class="field"><label>Radius</label><input type="number" min="0" max="80" value="${gc.cornerRadius||0}" oninput="${f('cornerRadius')}"></div></div>
+        ${paddingEditor(gc,f)}`;
     } else if(gc.type==='card'){
         html+=`<div class="fr"><div class="field"><label>BG</label><div class="cf"><input type="color" value="${gc.color||'#FFFFFF'}" oninput="${f('color')}"><code>${(gc.color||'#FFFFFF').toUpperCase()}</code></div></div>
         <div class="field"><label>Radius</label><input type="number" min="0" max="50" value="${gc.cornerRadius||0}" oninput="${f('cornerRadius')}"></div></div>
-        <div class="fr"><div class="field"><label>Pad H</label><input type="number" min="0" max="50" value="${gc.paddingH||0}" oninput="${f('paddingH')}"></div>
-        <div class="field"><label>Pad V</label><input type="number" min="0" max="50" value="${gc.paddingV||0}" oninput="${f('paddingV')}"></div></div>`;
+        ${paddingEditor(gc,f)}`;
     }
     return html||'<div style="font-size:11px;color:#999">No editable properties</div>'}
 function addChild(parentIdx,type){const ch={type,id:uid()};
@@ -374,8 +466,10 @@ function addChild(parentIdx,type){const ch={type,id:uid()};
     else if(type==='divider'){ch.color='#CCCCCC';ch.height=1}
     else if(type==='card'){ch.color='#FFFFFF';ch.cornerRadius=0;ch.paddingH=14;ch.paddingV=10;ch.children=[]}
     else if(type==='image'){ch.text='https://picsum.photos/640/360';ch.width=240;ch.height=135;ch.cornerRadius=8}
+    else if(type==='textfield'){ch.text='';ch.placeholder='Enter text';ch.color='#FFFFFF';ch.textColor='#111111';ch.fontSize=14;ch.cornerRadius=12;ch.borderColor='#D0D0D0';ch.borderWidth=1;ch.paddingH=12;ch.paddingV=10}
     if(!elements[parentIdx].children)elements[parentIdx].children=[];elements[parentIdx].children.push(ch);render()}
 function removeChild(parentIdx,childIdx){const removed=elements[parentIdx].children[childIdx];if(removed&&expandedChildId===removed.id)expandedChildId=null;expandedGcId=null;elements[parentIdx].children.splice(childIdx,1);render()}
+function removeChildById(parentIdx,childId){const arr=elements[parentIdx]?.children;if(!arr)return;const idx=arr.findIndex(ch=>ch.id===childId);if(idx>=0)removeChild(parentIdx,idx)}
 
 let childDragInfo=null;
 function onDragStart(e,idx){dragIdx=idx;childDragInfo=null;e.dataTransfer.effectAllowed='move';e.currentTarget.classList.add('dragging')}
@@ -408,6 +502,7 @@ function render(){
         else if(el.type==='row')summary=(el.children?.length||0)+' items';
         else if(el.type==='icon')summary=el.text||'icon';
         else if(el.type==='image')summary=el.text||'Image';
+        else if(el.type==='textfield')summary=el.placeholder||el.text||'Field';
         let editor=buildEditor(el,i);
         return `<div class="el-card" draggable="true" ondragstart="onDragStart(event,${i})" ondragend="onDragEnd()" ondragover="onDragOver(event,${i})" ondrop="onDrop(event,${i})">
             <div class="el-handle"><span class="material-icons-round">drag_indicator</span></div>
@@ -423,46 +518,60 @@ function render(){
     updatePreview()}
 
 function buildEditor(el,i){
-    const positionEditor=`<div class="field"><label>Position</label><select onchange="onFieldChange(${i},'vAlign',this.value)">
-        <option value="center" ${(el.vAlign||'center')==='center'?'selected':''}>Center</option>
-        <option value="top" ${el.vAlign==='top'?'selected':''}>Top</option>
-        <option value="bottom" ${el.vAlign==='bottom'?'selected':''}>Bottom</option>
-    </select></div>`;
-    if(el.type==='text')return positionEditor+`
+    const f=field=>`onFieldChange(${i},'${field}',this.value)`;
+    const layout=layoutEditor(el,f,true);
+    if(el.type==='text')return layout+`
         <div class="field"><label>Text</label><input type="text" value="${esc(el.text||'')}" oninput="onFieldChange(${i},'text',this.value)"></div>
         <div class="fr"><div class="field"><label>Size</label><input type="number" min="8" max="72" value="${el.fontSize||16}" oninput="onFieldChange(${i},'fontSize',this.value)"></div>
         <div class="field"><label>Color</label><div class="cf"><input type="color" value="${el.color||'#000000'}" oninput="onFieldChange(${i},'color',this.value)"><code>${(el.color||'#000000').toUpperCase()}</code></div></div></div>
-        <div class="fr"><div class="field"><label>Pad H</label><input type="number" min="0" max="50" value="${el.paddingH||0}" oninput="onFieldChange(${i},'paddingH',this.value)"></div>
-        <div class="field"><label>Pad V</label><input type="number" min="0" max="50" value="${el.paddingV||0}" oninput="onFieldChange(${i},'paddingV',this.value)"></div></div>`;
-    if(el.type==='button')return positionEditor+`
+        ${textStyleEditor(el,f)}
+        ${paddingEditor(el,f)}`;
+    if(el.type==='button')return layout+`
         <div class="field"><label>Label</label><input type="text" value="${esc(el.text||'')}" oninput="onFieldChange(${i},'text',this.value)"></div>
         <div class="field"><label>Action Name</label><input type="text" value="${esc(el.actionName||'')}" oninput="onFieldChange(${i},'actionName',this.value)" placeholder="e.g. open_settings"></div>
         <div class="fr"><div class="field"><label>Size</label><input type="number" min="8" max="72" value="${el.fontSize||16}" oninput="onFieldChange(${i},'fontSize',this.value)"></div>
         <div class="field"><label>Radius</label><input type="number" min="0" max="50" value="${el.cornerRadius||24}" oninput="onFieldChange(${i},'cornerRadius',this.value)"></div></div>
+        <div class="fr"><div class="field"><label>Width</label><input type="number" min="0" max="600" value="${el.width||0}" oninput="onFieldChange(${i},'width',this.value)"></div>
+        <div class="field"><label>Height</label><input type="number" min="0" max="200" value="${el.height||0}" oninput="onFieldChange(${i},'height',this.value)"></div></div>
         <div class="fr"><div class="field"><label>BG</label><div class="cf"><input type="color" value="${el.color||'#6200EA'}" oninput="onFieldChange(${i},'color',this.value)"><code>${(el.color||'#6200EA').toUpperCase()}</code></div></div>
         <div class="field"><label>Text</label><div class="cf"><input type="color" value="${el.textColor||'#FFFFFF'}" oninput="onFieldChange(${i},'textColor',this.value)"><code>${(el.textColor||'#FFFFFF').toUpperCase()}</code></div></div>
         <div class="field"><label>Border</label><div class="cf"><input type="color" value="${el.borderColor||'#000000'}" oninput="onFieldChange(${i},'borderColor',this.value)"><code>${(el.borderColor||'').toUpperCase()||'none'}</code></div></div></div>
-        <div class="fr"><div class="field"><label>Border W</label><input type="number" min="0" max="10" value="${el.borderWidth||0}" oninput="onFieldChange(${i},'borderWidth',this.value)"></div></div>`;
-    if(el.type==='spacer')return positionEditor+`<div class="field"><label>Height (dp)</label><input type="number" min="1" max="200" value="${el.height||16}" oninput="onFieldChange(${i},'height',this.value)"></div>`;
-    if(el.type==='divider')return positionEditor+`<div class="fr"><div class="field"><label>Height</label><input type="number" min="1" max="10" value="${el.height||1}" oninput="onFieldChange(${i},'height',this.value)"></div><div class="field"><label>Color</label><div class="cf"><input type="color" value="${el.color||'#CCCCCC'}" oninput="onFieldChange(${i},'color',this.value)"><code>${(el.color||'#CCCCCC').toUpperCase()}</code></div></div></div>`;
-    if(el.type==='image')return positionEditor+`
+        <div class="fr"><div class="field"><label>Border W</label><input type="number" min="0" max="10" value="${el.borderWidth||0}" oninput="onFieldChange(${i},'borderWidth',this.value)"></div></div>
+        ${paddingEditor(el,f)}`;
+    if(el.type==='textfield')return layout+`
+        <div class="field"><label>Value</label><input type="text" value="${esc(el.text||'')}" oninput="onFieldChange(${i},'text',this.value)"></div>
+        <div class="field"><label>Placeholder</label><input type="text" value="${esc(el.placeholder||'')}" oninput="onFieldChange(${i},'placeholder',this.value)" placeholder="Enter text"></div>
+        <div class="fr"><div class="field"><label>Size</label><input type="number" min="8" max="72" value="${el.fontSize||14}" oninput="onFieldChange(${i},'fontSize',this.value)"></div>
+        <div class="field"><label>Radius</label><input type="number" min="0" max="50" value="${el.cornerRadius||12}" oninput="onFieldChange(${i},'cornerRadius',this.value)"></div></div>
+        <div class="fr"><div class="field"><label>BG</label><div class="cf"><input type="color" value="${el.color||'#FFFFFF'}" oninput="onFieldChange(${i},'color',this.value)"><code>${(el.color||'#FFFFFF').toUpperCase()}</code></div></div>
+        <div class="field"><label>Text</label><div class="cf"><input type="color" value="${el.textColor||'#111111'}" oninput="onFieldChange(${i},'textColor',this.value)"><code>${(el.textColor||'#111111').toUpperCase()}</code></div></div>
+        <div class="field"><label>Border</label><div class="cf"><input type="color" value="${el.borderColor||'#D0D0D0'}" oninput="onFieldChange(${i},'borderColor',this.value)"><code>${(el.borderColor||'#D0D0D0').toUpperCase()}</code></div></div></div>
+        <div class="fr"><div class="field"><label>Border W</label><input type="number" min="0" max="10" value="${el.borderWidth||1}" oninput="onFieldChange(${i},'borderWidth',this.value)"></div></div>
+        ${paddingEditor(el,f)}`;
+    if(el.type==='spacer')return layout+`<div class="field"><label>Height (dp)</label><input type="number" min="1" max="200" value="${el.height||16}" oninput="onFieldChange(${i},'height',this.value)"></div>`;
+    if(el.type==='divider')return layout+`<div class="fr"><div class="field"><label>Height</label><input type="number" min="1" max="10" value="${el.height||1}" oninput="onFieldChange(${i},'height',this.value)"></div><div class="field"><label>Color</label><div class="cf"><input type="color" value="${el.color||'#CCCCCC'}" oninput="onFieldChange(${i},'color',this.value)"><code>${(el.color||'#CCCCCC').toUpperCase()}</code></div></div></div>`;
+    if(el.type==='image')return layout+`
         <div class="field"><label>Image URL</label><input type="text" value="${esc(el.text||'')}" oninput="onFieldChange(${i},'text',this.value)" placeholder="https://..."></div>
+        ${localImagePicker(f)}
         <div class="fr"><div class="field"><label>Width</label><input type="number" min="24" max="600" value="${el.width||320}" oninput="onFieldChange(${i},'width',this.value)"></div>
         <div class="field"><label>Height</label><input type="number" min="24" max="600" value="${el.height||180}" oninput="onFieldChange(${i},'height',this.value)"></div>
-        <div class="field"><label>Radius</label><input type="number" min="0" max="80" value="${el.cornerRadius||0}" oninput="onFieldChange(${i},'cornerRadius',this.value)"></div></div>`;
-    if(el.type==='card')return positionEditor+`
+        <div class="field"><label>Radius</label><input type="number" min="0" max="80" value="${el.cornerRadius||0}" oninput="onFieldChange(${i},'cornerRadius',this.value)"></div></div>
+        ${paddingEditor(el,f)}`;
+    if(el.type==='card')return layout+`
         <div class="fr"><div class="field"><label>BG Color</label><div class="cf"><input type="color" value="${el.color||'#FFFFFF'}" oninput="onFieldChange(${i},'color',this.value)"><code>${(el.color||'#FFFFFF').toUpperCase()}</code></div></div>
         <div class="field"><label>Radius</label><input type="number" min="0" max="50" value="${el.cornerRadius||16}" oninput="onFieldChange(${i},'cornerRadius',this.value)"></div></div>
         <div class="fr"><div class="field"><label>Border</label><div class="cf"><input type="color" value="${el.borderColor||'#CCCCCC'}" oninput="onFieldChange(${i},'borderColor',this.value)"><code>${(el.borderColor||'').toUpperCase()||'none'}</code></div></div>
         <div class="field"><label>Border W</label><input type="number" min="0" max="10" value="${el.borderWidth||0}" oninput="onFieldChange(${i},'borderWidth',this.value)"></div></div>
         <div class="field"><label>Action (optional)</label><input type="text" value="${esc(el.actionName||'')}" oninput="onFieldChange(${i},'actionName',this.value)" placeholder="Makes card clickable"></div>
+        ${paddingEditor(el,f)}
         ${childrenEditor(el,i,'text')}`;
-    if(el.type==='row')return positionEditor+childrenEditor(el,i,'button');
-    if(el.type==='icon')return positionEditor+`
+    if(el.type==='row')return layout+childrenEditor(el,i,'button');
+    if(el.type==='icon')return layout+`
         <div class="field"><label>Icon Name</label><input type="text" value="${esc(el.text||'')}" oninput="onFieldChange(${i},'text',this.value)" placeholder="content_copy, more_vert"></div>
         <div class="fr"><div class="field"><label>Size</label><input type="number" min="12" max="48" value="${el.fontSize||24}" oninput="onFieldChange(${i},'fontSize',this.value)"></div>
         <div class="field"><label>Color</label><div class="cf"><input type="color" value="${el.color||'#333333'}" oninput="onFieldChange(${i},'color',this.value)"><code>${(el.color||'#333333').toUpperCase()}</code></div></div></div>
-        <div class="field"><label>Action</label><input type="text" value="${esc(el.actionName||'')}" oninput="onFieldChange(${i},'actionName',this.value)"></div>`;
+        <div class="field"><label>Action</label><input type="text" value="${esc(el.actionName||'')}" oninput="onFieldChange(${i},'actionName',this.value)"></div>
+        ${paddingEditor(el,f)}`;
     return ''}
 
 function childrenEditor(el,i,defaultChild){
@@ -475,6 +584,7 @@ function childrenEditor(el,i,defaultChild){
     html+='<button class="btn btn-o btn-s" onclick="event.stopPropagation();addChild('+i+',\'divider\')">Divider</button>';
     html+='<button class="btn btn-o btn-s" onclick="event.stopPropagation();addChild('+i+',\'card\')">Card</button>';
     html+='<button class="btn btn-o btn-s" onclick="event.stopPropagation();addChild('+i+',\'image\')">Image</button>';
+    html+='<button class="btn btn-o btn-s" onclick="event.stopPropagation();addChild('+i+',\'textfield\')">Field</button>';
     html+='</div></div>';
     children.forEach((ch,ci)=>{
         const summary=ch.text||ch.type;
@@ -483,23 +593,39 @@ function childrenEditor(el,i,defaultChild){
         html+=`<div class="child-hdr" role="button" tabindex="0" onclick="toggleChildExpand(${i},${ci})"><span class="badge ${ch.type}">${ch.type}</span><span class="child-summary">${esc(summary)}</span></div>`;
         html+=`<div class="child-editor">${buildChildEditor(ch,i,ci)}</div>`;
         html+=`</div>`;
-        html+=`<button class="child-del-btn" draggable="false" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();removeChild(${i},${ci})" title="Remove" style="align-self:flex-start;margin:6px 4px 0 0"><span class="material-icons-round" style="font-size:16px">close</span></button>`;
+        html+=`<button class="child-del-btn" draggable="false" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()" ondragstart="event.preventDefault();event.stopPropagation()" onclick="event.preventDefault();event.stopPropagation();removeChildById(${i},'${ch.id}')" title="Remove" style="align-self:flex-start;margin:6px 4px 0 0"><span class="material-icons-round" style="font-size:16px">close</span></button>`;
         html+=`</div>`});
     html+='</div>';return html}
 
 function buildChildEditor(ch,i,ci){
-    let html='';
+    const f=field=>`onChildField(${i},${ci},'${field}',this.value)`;
+    let html=layoutEditor(ch,f,false);
     if(ch.type==='text'){
         html+=`<div class="field"><label>Text</label><input type="text" value="${esc(ch.text||'')}" oninput="onChildField(${i},${ci},'text',this.value)"></div>
         <div class="fr"><div class="field"><label>Size</label><input type="number" min="8" max="72" value="${ch.fontSize||14}" oninput="onChildField(${i},${ci},'fontSize',this.value)"></div>
-        <div class="field"><label>Color</label><div class="cf"><input type="color" value="${ch.color||'#000000'}" oninput="onChildField(${i},${ci},'color',this.value)"><code>${(ch.color||'#000000').toUpperCase()}</code></div></div></div>`;
+        <div class="field"><label>Color</label><div class="cf"><input type="color" value="${ch.color||'#000000'}" oninput="onChildField(${i},${ci},'color',this.value)"><code>${(ch.color||'#000000').toUpperCase()}</code></div></div></div>
+        ${textStyleEditor(ch,f)}
+        ${paddingEditor(ch,f)}`;
     } else if(ch.type==='button'){
         html+=`<div class="field"><label>Label</label><input type="text" value="${esc(ch.text||'')}" oninput="onChildField(${i},${ci},'text',this.value)"></div>
         <div class="field"><label>Action</label><input type="text" value="${esc(ch.actionName||'')}" oninput="onChildField(${i},${ci},'actionName',this.value)" placeholder="e.g. navigate:detail"></div>
         <div class="fr"><div class="field"><label>Size</label><input type="number" min="8" max="72" value="${ch.fontSize||14}" oninput="onChildField(${i},${ci},'fontSize',this.value)"></div>
         <div class="field"><label>Radius</label><input type="number" min="0" max="50" value="${ch.cornerRadius||20}" oninput="onChildField(${i},${ci},'cornerRadius',this.value)"></div></div>
+        <div class="fr"><div class="field"><label>Width</label><input type="number" min="0" max="600" value="${ch.width||0}" oninput="onChildField(${i},${ci},'width',this.value)"></div>
+        <div class="field"><label>Height</label><input type="number" min="0" max="200" value="${ch.height||0}" oninput="onChildField(${i},${ci},'height',this.value)"></div></div>
         <div class="fr"><div class="field"><label>BG</label><div class="cf"><input type="color" value="${ch.color||'#6200EA'}" oninput="onChildField(${i},${ci},'color',this.value)"><code>${(ch.color||'#6200EA').toUpperCase()}</code></div></div>
-        <div class="field"><label>Text</label><div class="cf"><input type="color" value="${ch.textColor||'#FFFFFF'}" oninput="onChildField(${i},${ci},'textColor',this.value)"><code>${(ch.textColor||'#FFFFFF').toUpperCase()}</code></div></div></div>`;
+        <div class="field"><label>Text</label><div class="cf"><input type="color" value="${ch.textColor||'#FFFFFF'}" oninput="onChildField(${i},${ci},'textColor',this.value)"><code>${(ch.textColor||'#FFFFFF').toUpperCase()}</code></div></div></div>
+        ${paddingEditor(ch,f)}`;
+    } else if(ch.type==='textfield'){
+        html+=`<div class="field"><label>Value</label><input type="text" value="${esc(ch.text||'')}" oninput="onChildField(${i},${ci},'text',this.value)"></div>
+        <div class="field"><label>Placeholder</label><input type="text" value="${esc(ch.placeholder||'')}" oninput="onChildField(${i},${ci},'placeholder',this.value)" placeholder="Enter text"></div>
+        <div class="fr"><div class="field"><label>Size</label><input type="number" min="8" max="72" value="${ch.fontSize||14}" oninput="onChildField(${i},${ci},'fontSize',this.value)"></div>
+        <div class="field"><label>Radius</label><input type="number" min="0" max="50" value="${ch.cornerRadius||12}" oninput="onChildField(${i},${ci},'cornerRadius',this.value)"></div></div>
+        <div class="fr"><div class="field"><label>BG</label><div class="cf"><input type="color" value="${ch.color||'#FFFFFF'}" oninput="onChildField(${i},${ci},'color',this.value)"><code>${(ch.color||'#FFFFFF').toUpperCase()}</code></div></div>
+        <div class="field"><label>Text</label><div class="cf"><input type="color" value="${ch.textColor||'#111111'}" oninput="onChildField(${i},${ci},'textColor',this.value)"><code>${(ch.textColor||'#111111').toUpperCase()}</code></div></div></div>
+        <div class="fr"><div class="field"><label>Border</label><div class="cf"><input type="color" value="${ch.borderColor||'#D0D0D0'}" oninput="onChildField(${i},${ci},'borderColor',this.value)"><code>${(ch.borderColor||'#D0D0D0').toUpperCase()}</code></div></div>
+        <div class="field"><label>Border W</label><input type="number" min="0" max="10" value="${ch.borderWidth||1}" oninput="onChildField(${i},${ci},'borderWidth',this.value)"></div></div>
+        ${paddingEditor(ch,f)}`;
     } else if(ch.type==='spacer'){
         html+=`<div class="field"><label>Height (dp)</label><input type="number" min="1" max="200" value="${ch.height||16}" oninput="onChildField(${i},${ci},'height',this.value)"></div>`;
     } else if(ch.type==='hspacer'){
@@ -509,14 +635,15 @@ function buildChildEditor(ch,i,ci){
         <div class="field"><label>Color</label><div class="cf"><input type="color" value="${ch.color||'#CCCCCC'}" oninput="onChildField(${i},${ci},'color',this.value)"><code>${(ch.color||'#CCCCCC').toUpperCase()}</code></div></div></div>`;
     } else if(ch.type==='image'){
         html+=`<div class="field"><label>Image URL</label><input type="text" value="${esc(ch.text||'')}" oninput="onChildField(${i},${ci},'text',this.value)" placeholder="https://..."></div>
+        ${localImagePicker(f)}
         <div class="fr"><div class="field"><label>Width</label><input type="number" min="24" max="600" value="${ch.width||240}" oninput="onChildField(${i},${ci},'width',this.value)"></div>
         <div class="field"><label>Height</label><input type="number" min="24" max="600" value="${ch.height||135}" oninput="onChildField(${i},${ci},'height',this.value)"></div>
-        <div class="field"><label>Radius</label><input type="number" min="0" max="80" value="${ch.cornerRadius||0}" oninput="onChildField(${i},${ci},'cornerRadius',this.value)"></div></div>`;
+        <div class="field"><label>Radius</label><input type="number" min="0" max="80" value="${ch.cornerRadius||0}" oninput="onChildField(${i},${ci},'cornerRadius',this.value)"></div></div>
+        ${paddingEditor(ch,f)}`;
     } else if(ch.type==='card'){
         html+=`<div class="fr"><div class="field"><label>BG</label><div class="cf"><input type="color" value="${ch.color||'#FFFFFF'}" oninput="onChildField(${i},${ci},'color',this.value)"><code>${(ch.color||'#FFFFFF').toUpperCase()}</code></div></div>
         <div class="field"><label>Radius</label><input type="number" min="0" max="50" value="${ch.cornerRadius||0}" oninput="onChildField(${i},${ci},'cornerRadius',this.value)"></div></div>
-        <div class="fr"><div class="field"><label>Pad H</label><input type="number" min="0" max="50" value="${ch.paddingH||0}" oninput="onChildField(${i},${ci},'paddingH',this.value)"></div>
-        <div class="field"><label>Pad V</label><input type="number" min="0" max="50" value="${ch.paddingV||0}" oninput="onChildField(${i},${ci},'paddingV',this.value)"></div></div>`;
+        ${paddingEditor(ch,f)}`;
         if(ch.children&&ch.children.length){
             html+=`<div style="margin-top:8px;padding:8px;background:var(--surface);border:1px dashed var(--outline);border-radius:6px" onclick="event.stopPropagation()">`;
             html+=`<div style="font-size:10px;font-weight:600;color:var(--ts);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Nested (${ch.children.length})</div>`;
@@ -573,8 +700,17 @@ function cleanEl(el){
     if(el.vAlign&&el.vAlign!=='center')o.vAlign=el.vAlign;
     if(el.paddingH!=null)o.paddingH=el.paddingH;
     if(el.paddingV!=null)o.paddingV=el.paddingV;
+    if(el.paddingTop!=null)o.paddingTop=el.paddingTop;
+    if(el.paddingBottom!=null)o.paddingBottom=el.paddingBottom;
+    if(el.paddingLeft!=null)o.paddingLeft=el.paddingLeft;
+    if(el.paddingRight!=null)o.paddingRight=el.paddingRight;
+    if(el.fontWeight!=null&&el.fontWeight!==400)o.fontWeight=el.fontWeight;
+    if(el.fontFamily)o.fontFamily=el.fontFamily;
+    if(el.italic)o.italic=true;
+    if(el.underline)o.underline=true;
     if(el.type==='text'){o.text=el.text;o.color=(el.color||'#000000').toUpperCase();o.fontSize=el.fontSize||16}
-    else if(el.type==='button'){o.text=el.text;o.color=(el.color||'#6200EA').toUpperCase();o.textColor=(el.textColor||'#FFFFFF').toUpperCase();o.fontSize=el.fontSize||16;o.cornerRadius=el.cornerRadius!=null?el.cornerRadius:24;if(el.actionName)o.actionName=el.actionName;if(el.borderColor&&el.borderWidth){o.borderColor=el.borderColor.toUpperCase();o.borderWidth=el.borderWidth}}
+    else if(el.type==='button'){o.text=el.text;o.color=(el.color||'#6200EA').toUpperCase();o.textColor=(el.textColor||'#FFFFFF').toUpperCase();o.fontSize=el.fontSize||16;o.cornerRadius=el.cornerRadius!=null?el.cornerRadius:24;if(el.width>0)o.width=el.width;if(el.height>0)o.height=el.height;if(el.actionName)o.actionName=el.actionName;if(el.borderColor&&el.borderWidth){o.borderColor=el.borderColor.toUpperCase();o.borderWidth=el.borderWidth}}
+    else if(el.type==='textfield'){o.text=el.text||'';o.placeholder=el.placeholder||'';o.color=(el.color||'#FFFFFF').toUpperCase();o.textColor=(el.textColor||'#111111').toUpperCase();o.fontSize=el.fontSize||14;o.cornerRadius=el.cornerRadius!=null?el.cornerRadius:12;o.borderColor=(el.borderColor||'#D0D0D0').toUpperCase();o.borderWidth=el.borderWidth!=null?el.borderWidth:1}
     else if(el.type==='spacer'){o.height=el.height||16}
     else if(el.type==='hspacer'){o.width=el.width||16}
     else if(el.type==='divider'){o.color=(el.color||'#CCCCCC').toUpperCase();o.height=el.height||1}

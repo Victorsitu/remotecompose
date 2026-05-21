@@ -30,6 +30,94 @@ private fun sp(value: Int): Float = value * density()
 
 private val platform = JvmRcPlatformServices()
 
+private data class PaddingSides(val left: Int, val top: Int, val right: Int, val bottom: Int)
+
+private fun paddingSides(el: ElementConfig, defaultHorizontal: Int = 0, defaultVertical: Int = 0): PaddingSides {
+    val horizontal = el.paddingH ?: defaultHorizontal
+    val vertical = el.paddingV ?: defaultVertical
+    return PaddingSides(
+        left = el.paddingLeft ?: horizontal,
+        top = el.paddingTop ?: vertical,
+        right = el.paddingRight ?: horizontal,
+        bottom = el.paddingBottom ?: vertical
+    )
+}
+
+private fun boxAlignment(value: String?): Int = when (value) {
+    "start" -> BoxLayout.START
+    "end" -> BoxLayout.END
+    else -> BoxLayout.CENTER
+}
+
+private fun textAlignment(value: String?): Int = when (value) {
+    "start" -> CoreText.TEXT_ALIGN_START
+    "end" -> CoreText.TEXT_ALIGN_END
+    else -> CoreText.TEXT_ALIGN_CENTER
+}
+
+private fun fontStyle(el: ElementConfig): Int = if (el.italic == true) 1 else 0
+
+private fun fontWeight(el: ElementConfig, default: Int = 400): Float = (el.fontWeight ?: default).toFloat()
+
+private fun fontFamily(el: ElementConfig): String? = when (el.fontFamily) {
+    null, "" -> null
+    "sans" -> "sans-serif"
+    else -> el.fontFamily
+}
+
+private fun renderStyledText(
+    writer: RemoteComposeWriter,
+    modifier: RecordingModifier,
+    textId: Int,
+    color: Int,
+    fontSize: Float,
+    el: ElementConfig,
+    defaultWeight: Int = 400,
+) {
+    if (el.underline == true) {
+        writer.textComponent(
+            modifier,
+            textId,
+            color,
+            0,
+            fontSize,
+            0f,
+            0f,
+            fontStyle(el),
+            fontWeight(el, defaultWeight),
+            fontFamily(el),
+            textAlignment(el.align),
+            0,
+            Int.MAX_VALUE,
+            0f,
+            0f,
+            1f,
+            0,
+            0,
+            0,
+            true,
+            false,
+            null,
+            null,
+            false,
+            0
+        ) {}
+        return
+    }
+
+    writer.textComponent(
+        modifier,
+        textId,
+        color,
+        fontSize,
+        fontStyle(el),
+        fontWeight(el, defaultWeight),
+        fontFamily(el),
+        textAlignment(el.align),
+        0,
+        Int.MAX_VALUE
+    ) {}
+}
 
 fun buildDocument(config: LayoutConfig): ByteArray {
     val width = (400 * density()).toInt()
@@ -96,15 +184,24 @@ private fun renderWeightedSpacer(writer: RemoteComposeWriter) {
 }
 
 private fun renderElement(writer: RemoteComposeWriter, el: ElementConfig, insideRow: Boolean) {
+    if (!insideRow) {
+        writer.startBox(RecordingModifier().fillMaxWidth(), boxAlignment(el.align), BoxLayout.CENTER)
+    }
+
     when (el.type) {
         "text" -> renderText(writer, el)
-        "button" -> renderButton(writer, el, fillWidth = !insideRow)
+        "button" -> renderButton(writer, el, fillWidth = !insideRow && el.align == null)
+        "textfield" -> renderTextField(writer, el, fillWidth = !insideRow && el.align == null)
         "spacer" -> renderSpacer(writer, el)
         "hspacer" -> renderHSpacer(writer, el)
         "divider" -> renderDivider(writer, el)
-        "image" -> renderImage(writer, el, fillWidth = !insideRow)
+        "image" -> renderImage(writer, el, fillWidth = !insideRow && el.align == null)
         "card" -> renderCard(writer, el)
         "row" -> renderRow(writer, el)
+    }
+
+    if (!insideRow) {
+        writer.endBox()
     }
 }
 
@@ -113,14 +210,13 @@ private fun renderText(writer: RemoteComposeWriter, el: ElementConfig) {
     val fontSize = sp(el.fontSize ?: 16)
     val textId = writer.addText(el.text ?: "")
 
-    val padH = el.paddingH ?: 0
-    val padV = el.paddingV ?: 0
+    val pad = paddingSides(el)
     val mod = RecordingModifier()
-    if (padH > 0 || padV > 0) {
-        mod.padding(dp(padH), dp(padV), dp(padH), dp(padV))
+    if (pad.left > 0 || pad.top > 0 || pad.right > 0 || pad.bottom > 0) {
+        mod.padding(dp(pad.left), dp(pad.top), dp(pad.right), dp(pad.bottom))
     }
 
-    writer.textComponent(mod, textId, color, fontSize, 0, 400f, null, CoreText.TEXT_ALIGN_START, 0, Int.MAX_VALUE) {}
+    renderStyledText(writer, mod, textId, color, fontSize, el)
 }
 
 private fun renderButton(writer: RemoteComposeWriter, el: ElementConfig, fillWidth: Boolean) {
@@ -130,21 +226,65 @@ private fun renderButton(writer: RemoteComposeWriter, el: ElementConfig, fillWid
     val borderW = el.borderWidth ?: 0
     val borderColor = if (el.borderColor != null && borderW > 0) parseArgb(el.borderColor!!) else bgColor
     val shape = RoundedRectShape(dp(radius), dp(radius), dp(radius), dp(radius))
+    val pad = paddingSides(el, defaultHorizontal = 32, defaultVertical = 14)
 
     val actionName = el.actionName ?: el.id.ifEmpty { el.text ?: "button" }
 
     val mod = RecordingModifier()
-    if (fillWidth) mod.fillMaxWidth()
+    if ((el.width ?: 0) > 0) {
+        mod.width(dp(el.width!!))
+    } else if (fillWidth) {
+        mod.fillMaxWidth()
+    }
+    if ((el.height ?: 0) > 0) {
+        mod.height(dp(el.height!!))
+    }
     mod.clip(shape)
         .background(bgColor)
         .border(dp(if (borderW > 0) borderW else 1), dp(radius), borderColor, ShapeType.ROUNDED_RECTANGLE)
         .onClick(HostAction(ACTION_BUTTON_CLICKED, writer.addText(actionName)))
-        .padding(dp(el.paddingH ?: 32), dp(el.paddingV ?: 14), dp(el.paddingH ?: 32), dp(el.paddingV ?: 14))
+        .padding(dp(pad.left), dp(pad.top), dp(pad.right), dp(pad.bottom))
 
     val textId = writer.addText(el.text ?: "Button")
 
     writer.startBox(mod, BoxLayout.CENTER, BoxLayout.CENTER)
-    writer.textComponent(RecordingModifier(), textId, textColor, sp(el.fontSize ?: 16), 0, 600f, null, CoreText.TEXT_ALIGN_CENTER, 0, Int.MAX_VALUE) {}
+    renderStyledText(writer, RecordingModifier(), textId, textColor, sp(el.fontSize ?: 16), el, defaultWeight = 600)
+    writer.endBox()
+}
+
+private fun renderTextField(writer: RemoteComposeWriter, el: ElementConfig, fillWidth: Boolean) {
+    val radius = el.cornerRadius ?: 12
+    val bgColor = parseArgb(el.color ?: "#FFFFFF")
+    val borderW = el.borderWidth ?: 1
+    val borderColor = parseArgb(el.borderColor ?: "#D0D0D0")
+    val pad = paddingSides(el, defaultHorizontal = 12, defaultVertical = 10)
+    val shape = RoundedRectShape(dp(radius), dp(radius), dp(radius), dp(radius))
+    val textId = writer.addText(el.text?.takeIf { it.isNotBlank() } ?: el.placeholder ?: "")
+
+    val mod = RecordingModifier()
+    if (fillWidth) {
+        mod.fillMaxWidth()
+    } else {
+        mod.width(dp(el.width ?: 280))
+    }
+    mod.clip(shape)
+        .background(bgColor)
+        .border(dp(borderW), dp(radius), borderColor, ShapeType.ROUNDED_RECTANGLE)
+        .padding(dp(pad.left), dp(pad.top), dp(pad.right), dp(pad.bottom))
+
+    writer.startBox(mod, BoxLayout.START, BoxLayout.CENTER)
+    writer.textComponent(
+        RecordingModifier(),
+        textId,
+        parseArgb(el.textColor ?: "#111111"),
+        sp(el.fontSize ?: 14),
+        0,
+        600f,
+        null,
+        CoreText.TEXT_ALIGN_START,
+        0,
+        Int.MAX_VALUE
+    ) {}
     writer.endBox()
 }
 
@@ -179,6 +319,7 @@ private fun renderImage(writer: RemoteComposeWriter, el: ElementConfig, fillWidt
 
     val imageId = loadRemoteBitmap(writer, source)
     val radius = el.cornerRadius ?: 0
+    val pad = paddingSides(el)
     val mod = RecordingModifier()
 
     if (fillWidth) {
@@ -191,6 +332,10 @@ private fun renderImage(writer: RemoteComposeWriter, el: ElementConfig, fillWidt
 
     if (radius > 0) {
         mod.clip(RoundedRectShape(dp(radius), dp(radius), dp(radius), dp(radius)))
+    }
+
+    if (pad.left > 0 || pad.top > 0 || pad.right > 0 || pad.bottom > 0) {
+        mod.padding(dp(pad.left), dp(pad.top), dp(pad.right), dp(pad.bottom))
     }
 
     writer.image(mod, imageId, RemoteComposeWriter.IMAGE_SCALE_CROP, 1f)
@@ -230,8 +375,7 @@ private fun renderCard(writer: RemoteComposeWriter, el: ElementConfig) {
         else -> ColumnLayout.CENTER
     }
 
-    val padH = el.paddingH ?: 16
-    val padV = el.paddingV ?: 16
+    val pad = paddingSides(el, defaultHorizontal = 16, defaultVertical = 16)
     val shape = RoundedRectShape(dp(radius), dp(radius), dp(radius), dp(radius))
 
     val mod = RecordingModifier().fillMaxWidth()
@@ -251,8 +395,8 @@ private fun renderCard(writer: RemoteComposeWriter, el: ElementConfig) {
         mod.onClick(HostAction(ACTION_BUTTON_CLICKED, writer.addText(cardAction)))
     }
 
-    if (padH > 0 || padV > 0) {
-        mod.padding(dp(padH), dp(padV), dp(padH), dp(padV))
+    if (pad.left > 0 || pad.top > 0 || pad.right > 0 || pad.bottom > 0) {
+        mod.padding(dp(pad.left), dp(pad.top), dp(pad.right), dp(pad.bottom))
     }
 
     writer.startBox(mod)

@@ -26,7 +26,6 @@ kotlin {
                 implementation(compose.material3)
                 implementation(compose.ui)
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-                implementation("com.github.achatikyan.remotecompose-shared:remotecompose-shared-wasm-js:1.0.0")
             }
         }
     }

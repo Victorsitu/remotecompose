@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,7 +24,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.platform.Font
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,6 +45,48 @@ import kotlin.js.toInt
 import org.jetbrains.skia.Image as SkiaImage
 
 private fun parseColor(hex: String): Color = Color(parseColorLong(hex))
+
+private data class PaddingSides(val left: Int, val top: Int, val right: Int, val bottom: Int)
+
+private fun paddingSides(el: ElementConfig, defaultHorizontal: Int = 0, defaultVertical: Int = 0): PaddingSides {
+    val horizontal = el.paddingH ?: defaultHorizontal
+    val vertical = el.paddingV ?: defaultVertical
+    return PaddingSides(
+        left = el.paddingLeft ?: horizontal,
+        top = el.paddingTop ?: vertical,
+        right = el.paddingRight ?: horizontal,
+        bottom = el.paddingBottom ?: vertical
+    )
+}
+
+private fun containerAlignment(value: String?): Alignment = when (value) {
+    "start" -> Alignment.CenterStart
+    "end" -> Alignment.CenterEnd
+    else -> Alignment.Center
+}
+
+private fun textAlignment(value: String?): TextAlign = when (value) {
+    "start" -> TextAlign.Start
+    "end" -> TextAlign.End
+    else -> TextAlign.Center
+}
+
+private fun fontWeight(el: ElementConfig): FontWeight = FontWeight(el.fontWeight ?: 400)
+
+private fun fontStyle(el: ElementConfig): FontStyle =
+    if (el.italic == true) FontStyle.Italic else FontStyle.Normal
+
+private fun textDecoration(el: ElementConfig): TextDecoration? =
+    if (el.underline == true) TextDecoration.Underline else null
+
+private fun fontFamily(el: ElementConfig): FontFamily? = when (el.fontFamily) {
+    "Roboto" -> robotoFontFamily
+    "sans", "sans-serif" -> FontFamily.SansSerif
+    "serif" -> FontFamily.Serif
+    "monospace" -> FontFamily.Monospace
+    "cursive" -> FontFamily.Cursive
+    else -> null
+}
 
 @JsFun(
     """(url, onSuccess, onFailure) => {
@@ -61,6 +109,34 @@ external fun fetchImageBytes(
     onSuccess: (JsArray<JsNumber>) -> Unit,
     onFailure: () -> Unit
 )
+
+@JsFun(
+    """(url) => {
+        const request = new XMLHttpRequest();
+        request.open("GET", url, false);
+        request.responseType = "arraybuffer";
+        request.send(null);
+        if (request.status < 200 || request.status >= 300) return [];
+        const source = new Uint8Array(request.response);
+        const bytes = new Array(source.length);
+        for (let i = 0; i < source.length; i++) bytes[i] = source[i];
+        return bytes;
+    }"""
+)
+external fun loadBytesSync(url: String): JsArray<JsNumber>
+
+private fun loadByteArraySync(url: String): ByteArray {
+    val data = loadBytesSync(url)
+    val bytes = ByteArray(data.length)
+    for (i in 0 until data.length) {
+        bytes[i] = (data[i]?.toInt() ?: 0).toByte()
+    }
+    return bytes
+}
+
+private val robotoFontFamily: FontFamily by lazy {
+    FontFamily(Font("Roboto", getData = { loadByteArraySync("fonts/Roboto-Regular.ttf") }))
+}
 
 @Composable
 fun PreviewRenderer(config: LayoutConfig, verticalAlignments: Map<String, String> = emptyMap()) {
@@ -106,12 +182,23 @@ fun PreviewRenderer(config: LayoutConfig, verticalAlignments: Map<String, String
 
 @Composable
 private fun RenderElement(el: ElementConfig) {
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = containerAlignment(el.align)
+    ) {
+        RenderElementContent(el, fillWidth = el.align == null)
+    }
+}
+
+@Composable
+private fun RenderElementContent(el: ElementConfig, fillWidth: Boolean) {
     when (el.type) {
         "text" -> TextElement(el)
-        "button" -> ButtonElement(el)
+        "button" -> ButtonElement(el, fillWidth = fillWidth)
+        "textfield" -> TextFieldElement(el, fillWidth = fillWidth)
         "spacer" -> SpacerElement(el)
         "divider" -> DividerElement(el)
-        "image" -> ImageElement(el)
+        "image" -> ImageElement(el, fillWidth = fillWidth)
         "card" -> CardElement(el)
         "row" -> RowElement(el)
     }
@@ -119,15 +206,19 @@ private fun RenderElement(el: ElementConfig) {
 
 @Composable
 private fun TextElement(el: ElementConfig) {
-    val padH = el.paddingH ?: 0
-    val padV = el.paddingV ?: 0
+    val pad = paddingSides(el)
     Text(
         text = el.text ?: "",
         fontSize = (el.fontSize ?: 16).sp,
         color = parseColor(el.color ?: "#000000"),
+        fontWeight = fontWeight(el),
+        fontFamily = fontFamily(el),
+        fontStyle = fontStyle(el),
+        textDecoration = textDecoration(el),
         modifier = Modifier
             .padding(bottom = 8.dp)
-            .then(if (padH > 0 || padV > 0) Modifier.padding(horizontal = padH.dp, vertical = padV.dp) else Modifier)
+            .padding(start = pad.left.dp, top = pad.top.dp, end = pad.right.dp, bottom = pad.bottom.dp),
+        textAlign = textAlignment(el.align)
     )
 }
 
@@ -136,8 +227,16 @@ private fun ButtonElement(el: ElementConfig, fillWidth: Boolean = true) {
     val radius = el.cornerRadius ?: 24
     val bgColor = parseColor(el.color ?: "#6200EA")
     val shape = RoundedCornerShape(radius.dp)
+    val pad = paddingSides(el, defaultHorizontal = 32, defaultVertical = 14)
 
-    var mod = if (fillWidth) Modifier.fillMaxWidth() else Modifier
+    var mod = when {
+        (el.width ?: 0) > 0 -> Modifier.width(el.width!!.dp)
+        fillWidth -> Modifier.fillMaxWidth()
+        else -> Modifier.widthIn(min = 120.dp)
+    }
+    if ((el.height ?: 0) > 0) {
+        mod = mod.height(el.height!!.dp)
+    }
     mod = mod
         .clip(shape)
         .background(bgColor)
@@ -153,8 +252,10 @@ private fun ButtonElement(el: ElementConfig, fillWidth: Boolean = true) {
     mod = mod
         .clickable { }
         .padding(
-            horizontal = (el.paddingH ?: 32).dp,
-            vertical = (el.paddingV ?: 14).dp
+            start = pad.left.dp,
+            top = pad.top.dp,
+            end = pad.right.dp,
+            bottom = pad.bottom.dp
         )
 
     Box(
@@ -165,9 +266,29 @@ private fun ButtonElement(el: ElementConfig, fillWidth: Boolean = true) {
             text = el.text ?: "Button",
             fontSize = (el.fontSize ?: 16).sp,
             color = parseColor(el.textColor ?: "#FFFFFF"),
-            fontWeight = FontWeight.SemiBold
+            fontWeight = fontWeight(el).takeUnless { el.fontWeight == null } ?: FontWeight.SemiBold,
+            fontFamily = fontFamily(el),
+            fontStyle = fontStyle(el),
+            textDecoration = textDecoration(el),
+            textAlign = textAlignment(el.align)
         )
     }
+}
+
+@Composable
+private fun TextFieldElement(el: ElementConfig, fillWidth: Boolean = true) {
+    var value by remember(el.id, el.text) { mutableStateOf(el.text.orEmpty()) }
+    val pad = paddingSides(el, defaultHorizontal = 12, defaultVertical = 10)
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = { value = it },
+        modifier = Modifier
+            .then(if (fillWidth) Modifier.fillMaxWidth() else Modifier.widthIn(min = 220.dp, max = 360.dp))
+            .padding(start = pad.left.dp, top = pad.top.dp, end = pad.right.dp, bottom = pad.bottom.dp),
+        placeholder = { Text(text = el.placeholder.orEmpty()) },
+        singleLine = true
+    )
 }
 
 @Composable
@@ -184,7 +305,7 @@ private fun DividerElement(el: ElementConfig) {
 }
 
 @Composable
-private fun ImageElement(el: ElementConfig) {
+private fun ImageElement(el: ElementConfig, fillWidth: Boolean = true) {
     val source = el.text
     var image by remember(source) { mutableStateOf<ImageBitmap?>(null) }
     var failed by remember(source) { mutableStateOf(false) }
@@ -201,9 +322,11 @@ private fun ImageElement(el: ElementConfig) {
 
     val radius = el.cornerRadius ?: 0
     val shape = RoundedCornerShape(radius.dp)
+    val pad = paddingSides(el)
     val modifier = Modifier
-        .fillMaxWidth()
+        .then(if (fillWidth) Modifier.fillMaxWidth() else Modifier.width((el.width ?: 320).dp))
         .height((el.height ?: 180).dp)
+        .padding(start = pad.left.dp, top = pad.top.dp, end = pad.right.dp, bottom = pad.bottom.dp)
         .clip(shape)
         .background(Color(0xFFE8F5E9))
         .border(1.dp, Color(0xFFA5D6A7), shape)
@@ -279,10 +402,9 @@ private fun CardElement(el: ElementConfig) {
         mod = mod.clickable { }
     }
 
-    val padH = el.paddingH ?: 16
-    val padV = el.paddingV ?: 16
-    if (padH > 0 || padV > 0) {
-        mod = mod.padding(horizontal = padH.dp, vertical = padV.dp)
+    val pad = paddingSides(el, defaultHorizontal = 16, defaultVertical = 16)
+    if (pad.left > 0 || pad.top > 0 || pad.right > 0 || pad.bottom > 0) {
+        mod = mod.padding(start = pad.left.dp, top = pad.top.dp, end = pad.right.dp, bottom = pad.bottom.dp)
     }
 
     Box(modifier = mod) {
@@ -307,10 +429,7 @@ private fun RowElement(el: ElementConfig) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         el.children?.forEach { child ->
-            when (child.type) {
-                "button" -> ButtonElement(child, fillWidth = false)
-                else -> RenderElement(child)
-            }
+            RenderElementContent(child, fillWidth = false)
         }
     }
 }
