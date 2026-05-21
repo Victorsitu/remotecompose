@@ -8,6 +8,7 @@ on:
       - 'index.html'
       - 'preview-src/**'
       - 'preview/**'
+      - 'assets/**'
       - 'config*.json'
       - 'config*.rc'
       - 'editor-screenshot.png'
@@ -52,6 +53,7 @@ jobs:
           cp config*.json _site/
           cp config*.rc _site/
           cp editor-screenshot.png _site/ || true
+          cp -R assets _site/ || true
           cp -R preview-src/build/dist/wasmJs/productionExecutable/. _site/preview/
           touch _site/.nojekyll
 
