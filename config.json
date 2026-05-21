@@ -42,13 +42,14 @@
           "text": "Introduce el codigo que has recibido",
           "color": "#333333",
           "fontSize": 12
-        },
-        {
-          "type": "spacer",
-          "id": "71",
-          "height": 32
         }
       ]
+    },
+    {
+      "type": "spacer",
+      "id": "72",
+      "vAlign": "top",
+      "height": 32
     },
     {
       "type": "textfield",
@@ -58,15 +59,18 @@
       "paddingH": 12,
       "paddingV": 10,
       "paddingTop": 0,
+      "paddingBottom": 0,
       "paddingLeft": 0,
+      "paddingRight": 0,
       "text": "",
       "placeholder": "Enter text",
       "color": "#FFFFFF",
       "textColor": "#111111",
-      "fontSize": 16,
+      "fontSize": 18,
       "cornerRadius": 12,
       "borderColor": "#7D7D7E",
-      "borderWidth": 0
+      "borderWidth": 1,
+      "actionName": "Textefield Click"
     },
     {
       "type": "column",
