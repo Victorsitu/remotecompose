@@ -15,6 +15,38 @@ private fun argb(hex: String): Int = hex.removePrefix("#").toLong(16).let { rgb 
     if (hex.length <= 7) (0xFF000000 or rgb).toInt() else rgb.toInt()
 }
 
+private class LinearGradientBackgroundModifier(
+    private val width: Float,
+    private val height: Float,
+    private val startColor: Int,
+    private val endColor: Int,
+) : RecordingModifier.Element {
+    override fun write(writer: RemoteComposeWriter) {
+        writer.getRcPaint()
+            .setLinearGradient(
+                0f,
+                height,
+                width,
+                0f,
+                intArrayOf(startColor, endColor),
+                floatArrayOf(0f, 1f),
+                0
+            )
+            .commit()
+        writer.drawRect(0f, 0f, width, height)
+    }
+}
+
+private fun RecordingModifier.brandGradientBackground(width: Float, height: Float): RecordingModifier =
+    then(
+        LinearGradientBackgroundModifier(
+            width = width,
+            height = height,
+            startColor = argb("#01EBBF"),
+            endColor = argb("#01F685")
+        )
+    )
+
 /**
  * Remote Compose component generated directly from Kotlin.
  *
@@ -43,28 +75,29 @@ fun buildBoxComponentByteArray(): ByteArray {
     )
 
     val textId = writer.addText("Enviar Bizum")
-
+//background: linear-gradient(45deg, var(--QDS-brand-gradient-01-main-left, #01EBBF) 0%, var(--QDS-brand-gradient-01-main-right, #01F685) 100%);
     writer.root {
         writer.startBox(
             RecordingModifier()
                 .fillMaxWidth()
-                .height(dp(72))
-                .background(argb("#FFFFFF")),
+                .height(dp(160))
+                .background(argb("#FFFFFF"))
+                .border(dp(0), dp(20), argb("#FFFFFF"), 1),
             BoxLayout.CENTER,
             BoxLayout.CENTER
         )
 
         writer.startBox(
             RecordingModifier()
-                .fillMaxWidth()
-                .padding(dp(16), dp(12), dp(16), dp(12))
-                .background(argb("#0000FF")),
+                .fillMaxSize()
+                .padding(dp(16), dp(0), dp(16), dp(0))
+                .brandGradientBackground(width = dp(400 - 32), height = dp(160)),
             BoxLayout.CENTER,
             BoxLayout.CENTER
         )
 
         writer.textComponent(
-            RecordingModifier().fillMaxWidth(),
+            RecordingModifier().fillMaxWidth().height(dp(80)),
             textId,
             argb("#FFFFFF"),
             sp(16),
