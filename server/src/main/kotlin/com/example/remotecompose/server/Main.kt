@@ -1,5 +1,6 @@
 package com.example.remotecompose.server
 
+import com.example.remotecompose.server.components.buildBoxComponentByteArray
 import com.example.remotecompose.shared.LayoutConfig
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -10,10 +11,14 @@ fun main(args: Array<String>) {
     if (args.isEmpty()) {
         System.err.println("Usage: remotecompose-server <input.json> [output.rc]")
         System.err.println("       remotecompose-server --dir <input-dir> <output-dir>")
+        System.err.println("       remotecompose-server --component box [output.rc]")
         System.exit(1)
     }
 
-    if (args[0] == "--dir" && args.size >= 3) {
+    if (args[0] == "--component" && args.size >= 2) {
+        val outputFile = if (args.size > 2) File(args[2]) else File("box_component.rc")
+        convertComponent(args[1], outputFile)
+    } else if (args[0] == "--dir" && args.size >= 3) {
         val inputDir = File(args[1])
         val outputDir = File(args[2])
         outputDir.mkdirs()
@@ -25,6 +30,7 @@ fun main(args: Array<String>) {
             val outputFile = File(outputDir, jsonFile.nameWithoutExtension + ".rc")
             convertFile(jsonFile, outputFile)
         }
+        convertComponent("box", File(outputDir, "box_component.rc"))
 
         println("Done. Output in: ${outputDir.absolutePath}")
     } else {
@@ -41,4 +47,13 @@ private fun convertFile(input: File, output: File) {
     val bytes = buildDocument(config)
     output.writeBytes(bytes)
     println("  ${input.name} -> ${output.name} (${bytes.size} bytes)")
+}
+
+private fun convertComponent(name: String, output: File) {
+    val bytes = when (name) {
+        "box" -> buildBoxComponentByteArray()
+        else -> error("Unknown component: $name")
+    }
+    output.writeBytes(bytes)
+    println("  component:$name -> ${output.name} (${bytes.size} bytes)")
 }

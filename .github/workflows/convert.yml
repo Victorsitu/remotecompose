@@ -1,10 +1,11 @@
-name: Convert JSON to Remote Compose Binary
+name: Convert Remote Compose Documents
 
 on:
   push:
     branches: [main]
     paths:
       - '*.json'
+      - 'server/**'
   workflow_dispatch:
 
 permissions:
@@ -24,7 +25,7 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Convert JSON configs to binary .rc files
+      - name: Convert JSON configs and Kotlin components to binary .rc files
         run: |
           cd server
           chmod +x gradlew
@@ -38,6 +39,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Auto-generate binary .rc files from JSON configs"
+            git commit -m "Auto-generate binary .rc files"
             git push
           fi

@@ -10,7 +10,7 @@ on:
       - 'preview/**'
       - 'assets/**'
       - 'config*.json'
-      - 'config*.rc'
+      - '*.rc'
       - 'editor-screenshot.png'
       - '.github/workflows/deploy-editor.yml'
 
@@ -51,7 +51,7 @@ jobs:
           mkdir -p _site/preview
           cp index.html _site/
           cp config*.json _site/
-          cp config*.rc _site/
+          cp *.rc _site/
           cp editor-screenshot.png _site/ || true
           cp -R assets _site/ || true
           cp -R preview-src/build/dist/wasmJs/productionExecutable/. _site/preview/
