@@ -112,7 +112,7 @@ fun buildBoxComponentByteArray(): ByteArray {
         writer.startBox(
             RecordingModifier()
                 .fillMaxWidth()
-                .height(dp(160))
+                .height(dp(90))
                 .background(argb("#FFFFFF")),
             BoxLayout.CENTER,
             BoxLayout.CENTER
