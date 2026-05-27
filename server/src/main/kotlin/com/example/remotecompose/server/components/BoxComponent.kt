@@ -106,7 +106,7 @@ fun buildBoxComponentByteArray(): ByteArray {
 
     val titleId = writer.addText("Enviar Bizum")
     val subtitleId = writer.addText("Test Component")
-    val bannerActionId = writer.addText("banner_click")
+    val bannerActionId = writer.addText("banner_click:navigateCMN")
     val cardWidth = dp(368)
     val cardHeight = dp(78)
     val cardRadius = dp(6)
