@@ -120,7 +120,7 @@ fun buildBoxComponentByteArray(): ByteArray {
 
         writer.startBox(
             RecordingModifier()
-                .width(cardWidth)
+                .fillMaxWidth()
                 .height(cardHeight)
                 .then(SoftShadowModifier(cardWidth, cardHeight, cardRadius)),
             BoxLayout.CENTER,
@@ -129,7 +129,7 @@ fun buildBoxComponentByteArray(): ByteArray {
 
         writer.row(
             RecordingModifier()
-                .width(cardWidth)
+                .fillMaxWidth()
                 .height(cardHeight)
                 .clip(RoundedRectShape(cardRadius, cardRadius, cardRadius, cardRadius))
                 .background(argb("#C9FCEA"))
@@ -141,7 +141,7 @@ fun buildBoxComponentByteArray(): ByteArray {
         ) {
             writer.startBox(
                 RecordingModifier()
-                    .width(dp(47))
+                    .fillMaxWidth()
                     .height(dp(47))
                     .clip(RoundedRectShape(0f, 0f, 0f, 0f))
                     .then(ThumbnailModifier(dp(47), dp(47)))
