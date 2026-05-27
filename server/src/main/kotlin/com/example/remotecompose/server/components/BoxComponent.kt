@@ -95,7 +95,7 @@ private class CloseIconModifier(private val size: Float) : RecordingModifier.Ele
  */
 fun buildBoxComponentByteArray(): ByteArray {
     val width = (400 * DEFAULT_DENSITY).toInt()
-    val height = (160 * DEFAULT_DENSITY).toInt()
+    val height = (90 * DEFAULT_DENSITY).toInt()
     val writer = RemoteComposeWriter(
         JvmRcPlatformServices(),
         RemoteComposeWriter.HTag(Header.DOC_WIDTH, width),
