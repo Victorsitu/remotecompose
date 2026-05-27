@@ -130,13 +130,14 @@ fun buildBoxComponentByteArray(): ByteArray {
             BoxLayout.CENTER
         )
 
+        //#98A4F5
         writer.row(
             RecordingModifier()
                 .fillMaxWidth()
                 .height(cardHeight)
                 .clip(RoundedRectShape(cardRadius, cardRadius, cardRadius, cardRadius))
-                .background(argb("#2538B8"))
-                .border(dp(1), cardRadius, argb("#2538B8"), ShapeType.ROUNDED_RECTANGLE)
+                .background(argb("#C9FCEA"))
+                .border(dp(1), cardRadius, argb("#C9FCEA"), ShapeType.ROUNDED_RECTANGLE)
                 .onClick(HostAction(ACTION_BANNER_CLICKED, bannerActionId))
                 .padding(dp(16), dp(16), dp(10), dp(15))
                 .spacedBy(dp(12)),
