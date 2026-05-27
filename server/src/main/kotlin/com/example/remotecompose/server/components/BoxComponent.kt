@@ -8,10 +8,12 @@ import androidx.compose.remote.core.operations.layout.managers.RowLayout
 import androidx.compose.remote.core.operations.layout.modifiers.ShapeType
 import androidx.compose.remote.creation.JvmRcPlatformServices
 import androidx.compose.remote.creation.RemoteComposeWriter
+import androidx.compose.remote.creation.actions.HostAction
 import androidx.compose.remote.creation.modifiers.RecordingModifier
 import androidx.compose.remote.creation.modifiers.RoundedRectShape
 
 private const val DEFAULT_DENSITY = 2.625f
+private const val ACTION_BANNER_CLICKED = 1001
 
 private fun dp(value: Int): Float = value * DEFAULT_DENSITY
 private fun sp(value: Int): Float = value * DEFAULT_DENSITY
@@ -104,6 +106,7 @@ fun buildBoxComponentByteArray(): ByteArray {
 
     val titleId = writer.addText("Enviar Bizum")
     val subtitleId = writer.addText("Test Component")
+    val bannerActionId = writer.addText("banner_click")
     val cardWidth = dp(368)
     val cardHeight = dp(78)
     val cardRadius = dp(6)
@@ -134,6 +137,7 @@ fun buildBoxComponentByteArray(): ByteArray {
                 .clip(RoundedRectShape(cardRadius, cardRadius, cardRadius, cardRadius))
                 .background(argb("#C9FCEA"))
                 .border(dp(1), cardRadius, argb("#C9FCEA"), ShapeType.ROUNDED_RECTANGLE)
+                .onClick(HostAction(ACTION_BANNER_CLICKED, bannerActionId))
                 .padding(dp(16), dp(16), dp(10), dp(15))
                 .spacedBy(dp(12)),
             RowLayout.START,
