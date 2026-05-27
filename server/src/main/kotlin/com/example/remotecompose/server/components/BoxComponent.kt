@@ -141,7 +141,7 @@ fun buildBoxComponentByteArray(): ByteArray {
         ) {
             writer.startBox(
                 RecordingModifier()
-                    .fillMaxWidth()
+                    .width(dp(47))
                     .height(dp(47))
                     .clip(RoundedRectShape(0f, 0f, 0f, 0f))
                     .then(ThumbnailModifier(dp(47), dp(47)))
