@@ -19,6 +19,8 @@ import java.net.URI
 import javax.imageio.ImageIO
 
 private const val ACTION_BUTTON_CLICKED = 1001
+private const val DOC_WIDTH_DP = 360
+private const val DOC_HEIGHT_DP = 800
 
 private fun parseArgb(hex: String): Int = parseColorLong(hex).toInt()
 
@@ -120,8 +122,8 @@ private fun renderStyledText(
 }
 
 fun buildDocument(config: LayoutConfig): ByteArray {
-    val width = (400 * density()).toInt()
-    val height = (800 * density()).toInt()
+    val width = (DOC_WIDTH_DP * density()).toInt()
+    val height = (DOC_HEIGHT_DP * density()).toInt()
 
     val writer = RemoteComposeWriter(
         platform,
