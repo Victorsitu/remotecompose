@@ -106,7 +106,7 @@ fun buildBoxComponentByteArray(): ByteArray {
 
     val titleId = writer.addText("Enviar Bizum")
     val subtitleId = writer.addText("Test Component")
-    val bannerActionId = writer.addText("banner_click:navigateCMN")
+    val bannerActionId = writer.addText("banne_click:navigate")
     val cardWidth = dp(368)
     val cardHeight = dp(78)
     val cardRadius = dp(6)
@@ -136,8 +136,8 @@ fun buildBoxComponentByteArray(): ByteArray {
                 .fillMaxWidth()
                 .height(cardHeight)
                 .clip(RoundedRectShape(cardRadius, cardRadius, cardRadius, cardRadius))
-                .background(argb("#C9FCEA"))
-                .border(dp(1), cardRadius, argb("#C9FCEA"), ShapeType.ROUNDED_RECTANGLE)
+                .background(argb("#98A4F5"))
+                .border(dp(1), cardRadius, argb("#98A4F5"), ShapeType.ROUNDED_RECTANGLE)
                 .onClick(HostAction(ACTION_BANNER_CLICKED, bannerActionId))
                 .padding(dp(16), dp(16), dp(10), dp(15))
                 .spacedBy(dp(12)),
