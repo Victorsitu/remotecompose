@@ -130,7 +130,7 @@ fun buildBoxComponentByteArray(): ByteArray {
             BoxLayout.CENTER
         )
 
-        //#98A4F5
+          //#98A4F5
         writer.row(
             RecordingModifier()
                 .fillMaxWidth()
